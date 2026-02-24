@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm add:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:cov:*)",
+      "Bash(npm install:*)",
+      "Bash(tree:*)",
+      "Bash(pnpm exec playwright install:*)",
+      "Bash(pnpm test:e2e:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx prisma db seed)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm dev)"
+    ]
+  }
+}
