@@ -39,6 +39,13 @@ export enum ProductStatus {
   ARCHIVED = 'ARCHIVED',
 }
 
+export enum TaxCode {
+  IVA_16 = 'IVA_16',
+  IVA_11 = 'IVA_11',
+  IVA_8 = 'IVA_8',
+  EXCENTO = 'EXCENTO',
+}
+
 export enum OrderStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
@@ -138,6 +145,8 @@ export interface Product {
   description: string | null;
   categoryId: string;
   price: number;
+  taxRate: number | null;
+  taxCode: TaxCode | null;
   comparePrice: number | null;
   costPrice: number | null;
   trackInventory: boolean;
@@ -268,6 +277,8 @@ export interface CreateProductDto {
   description?: string;
   categoryId: string;
   price: number;
+  taxRate?: number;
+  taxCode?: TaxCode;
   comparePrice?: number;
   costPrice?: number;
   trackInventory: boolean;
@@ -338,3 +349,14 @@ export interface CreateUserDto {
 export interface UpdateUserDto extends Partial<Omit<CreateUserDto, 'password'>> {
   password?: string;
 }
+
+export interface CreateCustomerDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  type?: CustomerType;
+  status?: CustomerStatus;
+}
+
+export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}

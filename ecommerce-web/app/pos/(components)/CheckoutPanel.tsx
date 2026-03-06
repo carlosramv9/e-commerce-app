@@ -24,7 +24,6 @@ interface CheckoutPanelProps {
     appliedCoupons: AppliedCoupon[];
     discount: number;
     subtotal: number;
-    tax: number;
     total: number;
     canCheckout: boolean;
 }
@@ -41,12 +40,11 @@ const CheckoutPanel = ({
     appliedCoupons,
     discount,
     subtotal,
-    tax,
     total,
     canCheckout,
 }: CheckoutPanelProps) => {
     return (
-        <div className="w-full lg:w-[400px] xl:w-[440px] border-t lg:border-t-0 lg:border-l border-neutral-200 bg-white flex flex-col max-h-[50vh] lg:max-h-none">
+        <div className="w-full lg:w-[600px] xl:w-[640px] border-t lg:border-t-0 lg:border-l border-neutral-200 bg-white flex flex-col max-h-[50vh] lg:max-h-none">
             {/* Cart Header */}
             <div className="border-b border-neutral-200 px-4 md:px-5 py-3 bg-neutral-50 shrink-0">
                 <div className="flex items-center justify-between">
@@ -145,10 +143,6 @@ const CheckoutPanel = ({
                             <span className="font-mono">−{currencyFormatter.format(discount)}</span>
                         </div>
                     )}
-                    <div className="flex justify-between text-xs text-neutral-600">
-                        <span>IVA (16%)</span>
-                        <span className="font-mono">{currencyFormatter.format(tax)}</span>
-                    </div>
                     <div className="flex justify-between text-sm font-bold text-neutral-900 pt-1 border-t border-neutral-200">
                         <span>Total</span>
                         <span className="font-mono text-lg">{currencyFormatter.format(total)}</span>

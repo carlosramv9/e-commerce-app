@@ -42,7 +42,6 @@ const CheckoutModal = ({
     appliedCoupons,
     subtotal,
     discount,
-    tax,
     total,
     onConfirm,
     confirming,
@@ -54,7 +53,6 @@ const CheckoutModal = ({
     appliedCoupons: AppliedCoupon[];
     subtotal: number;
     discount: number;
-    tax: number;
     total: number;
     onConfirm: (paymentMethod: string) => Promise<void>;
     confirming: boolean;
@@ -123,10 +121,6 @@ const CheckoutModal = ({
                                 <span className="font-mono text-emerald-600">−{currencyFormatter.format(discount)}</span>
                             </div>
                         )}
-                        <div className="flex justify-between text-sm">
-                            <span className="text-neutral-600">IVA (16%)</span>
-                            <span className="font-mono text-neutral-900">{currencyFormatter.format(tax)}</span>
-                        </div>
                         <Separator />
                         <div className="flex justify-between">
                             <span className="font-semibold text-neutral-900">Total</span>

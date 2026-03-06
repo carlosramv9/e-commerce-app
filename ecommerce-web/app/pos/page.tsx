@@ -166,8 +166,7 @@ export default function POSPage() {
     return total;
   }, [appliedCoupons, subtotal]);
 
-  const tax = useMemo(() => (subtotal - discount) * 0.16, [subtotal, discount]);
-  const total = useMemo(() => subtotal - discount + tax, [subtotal, discount, tax]);
+  const total = useMemo(() => subtotal - discount, [subtotal, discount]);
   const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
   const canCheckout = useMemo(
@@ -342,7 +341,6 @@ export default function POSPage() {
           appliedCoupons={appliedCoupons}
           discount={discount}
           subtotal={subtotal}
-          tax={tax}
           total={total}
           canCheckout={canCheckout}
         />
@@ -376,7 +374,6 @@ export default function POSPage() {
         appliedCoupons={appliedCoupons}
         subtotal={subtotal}
         discount={discount}
-        tax={tax}
         total={total}
         onConfirm={handleCreateOrder}
         confirming={creatingOrder}

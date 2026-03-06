@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { ProductForm } from '@/components/products/product-form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { productsApi } from '@/lib/api/products';
-import { Product } from '@/lib/types';
+import { Product, UpdateProductDto } from '@/lib/types';
 import { toast } from 'sonner';
 
 export default function EditProductPage({
@@ -37,14 +37,18 @@ export default function EditProductPage({
     loadProduct();
   }, [loadProduct]);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (
+    data: Parameters<React.ComponentProps<typeof ProductForm>['onSubmit']>[0]
+  ) => {
     try {
       setIsSubmitting(true);
-      await productsApi.update(id, data);
+      await productsApi.update(id, data as UpdateProductDto);
       toast.success('Producto actualizado exitosamente');
       router.push('/products');
-    } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar producto');
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Error al actualizar producto';
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

@@ -8,7 +8,7 @@ import { PasswordUtil } from '../../common/utils/password.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
-import { User } from '@prisma/client';
+import { User, UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -27,8 +27,12 @@ export class UsersService {
 
     const user = await this.prisma.user.create({
       data: {
-        ...createUserDto,
+        email: createUserDto.email,
         password: hashedPassword,
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
+        role: createUserDto.role,
+        status: createUserDto.status ?? UserStatus.ACTIVE,
       },
     });
 

@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
-import { Customer } from '@prisma/client';
+import { Customer, CustomerStatus, CustomerType } from '@prisma/client';
+import { CreateCustomerDto } from './dto/create-customer.dto';
+import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 @Injectable()
 export class CustomersService {
@@ -52,5 +58,54 @@ export class CustomersService {
     }
 
     return customer;
+  }
+
+  async create(createCustomerDto: CreateCustomerDto): Promise<Customer> {
+    const existing = await this.prisma.customer.findUnique({
+      where: { email: createCustomerDto.email },
+    });
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    return this.prisma.customer.create({
+      data: {
+        email: createCustomerDto.email,
+        firstName: createCustomerDto.firstName,
+        lastName: createCustomerDto.lastName,
+        phone: createCustomerDto.phone ?? null,
+        status: createCustomerDto.status ?? CustomerStatus.ACTIVE,
+        type: createCustomerDto.type ?? CustomerType.NEW,
+      },
+    });
+  }
+
+  async update(
+    id: string,
+    updateCustomerDto: UpdateCustomerDto,
+  ): Promise<Customer> {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    if (
+      updateCustomerDto.email &&
+      updateCustomerDto.email !== customer.email
+    ) {
+      const existing = await this.prisma.customer.findUnique({
+        where: { email: updateCustomerDto.email },
+      });
+      if (existing) {
+        throw new ConflictException('Email already registered');
+      }
+    }
+
+    return this.prisma.customer.update({
+      where: { id },
+      data: updateCustomerDto,
+    });
   }
 }

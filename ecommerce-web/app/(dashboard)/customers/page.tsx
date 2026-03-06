@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, Plus } from 'lucide-react';
 import { customersApi } from '@/lib/api/customers';
 import { Customer, CustomerType, CustomerStatus } from '@/lib/types';
 import { toast } from 'sonner';
@@ -104,7 +104,16 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <PageHeader title="Clientes" description="Gestiona la base de clientes" />
+      <PageHeader
+        title="Clientes"
+        description="Gestiona la base de clientes"
+        action={
+          <Button onClick={() => router.push('/customers/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Cliente
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <Card className="mb-6">

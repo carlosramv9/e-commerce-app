@@ -88,4 +88,8 @@ export class CreateProductDto {
   @ApiPropertyOptional({ enum: TaxCode, default: 'IVA_16' })
   @IsEnum(TaxCode)
   taxCode?: TaxCode;
+
+  @ApiProperty()
+  @IsString()
+  slug?: string;
 }

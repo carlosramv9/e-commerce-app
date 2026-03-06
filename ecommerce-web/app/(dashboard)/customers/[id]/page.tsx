@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Pencil } from 'lucide-react';
 import { customersApi } from '@/lib/api/customers';
 import { ordersApi } from '@/lib/api/orders';
 import { Customer, Order, CustomerType, CustomerStatus, OrderStatus } from '@/lib/types';
@@ -24,32 +24,33 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export default function CustomerDetailsPage({ params }: { params: { id: string } }) {
+export default function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadCustomerData();
-  }, [params.id]);
-
-  const loadCustomerData = async () => {
+  const loadCustomerData = useCallback(async () => {
     try {
       setLoading(true);
       const [customerRes, ordersRes] = await Promise.all([
-        customersApi.getOne(params.id),
-        ordersApi.getAll({ customerId: params.id, limit: 10 }),
+        customersApi.getOne(id),
+        ordersApi.getAll({ customerId: id, limit: 10 }),
       ]);
       setCustomer(customerRes.data);
       setOrders(ordersRes.data.data);
-    } catch (error) {
+    } catch {
       toast.error('Error al cargar datos del cliente');
       router.push('/customers');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    loadCustomerData();
+  }, [loadCustomerData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -132,10 +133,16 @@ export default function CustomerDetailsPage({ params }: { params: { id: string }
         title={`${customer.firstName} ${customer.lastName}`}
         description="Información detallada del cliente"
         action={
-          <Button variant="outline" onClick={() => router.push('/customers')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push('/customers')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            <Button onClick={() => router.push(`/customers/${id}/edit`)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+          </div>
         }
       />
 

@@ -24,10 +24,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
 import { categoriesApi } from '@/lib/api/categories';
-import { Category, Product, ProductStatus } from '@/lib/types';
+import { Category, Product } from '@/lib/types';
 import { toast } from 'sonner';
 
 const productSchema = z.object({
@@ -37,6 +36,8 @@ const productSchema = z.object({
   description: z.string().optional(),
   categoryId: z.string().min(1, 'Categoría es requerida'),
   price: z.number().positive('El precio debe ser mayor a 0'),
+  taxRate: z.number().min(0).max(100).optional(),
+  taxCode: z.enum(['IVA_16', 'IVA_11', 'IVA_8', 'EXCENTO']).optional(),
   comparePrice: z.number().optional(),
   costPrice: z.number().optional(),
   stock: z.number().int().min(0, 'El stock no puede ser negativo'),
@@ -67,12 +68,14 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
       slug: product?.slug || '',
       description: product?.description || '',
       categoryId: product?.categoryId || '',
-      price: product?.price || 0,
-      comparePrice: product?.comparePrice || undefined,
-      costPrice: product?.costPrice || undefined,
-      stock: product?.stock || 0,
+      price: product?.price ?? 0,
+      taxRate: product?.taxRate ?? undefined,
+      taxCode: (product?.taxCode as 'IVA_16' | 'IVA_11' | 'IVA_8' | 'EXCENTO') || 'IVA_16',
+      comparePrice: product?.comparePrice ?? undefined,
+      costPrice: product?.costPrice ?? undefined,
+      stock: product?.stock ?? 0,
       trackInventory: product?.trackInventory ?? true,
-      lowStockAlert: product?.lowStockAlert || 10,
+      lowStockAlert: product?.lowStockAlert ?? 10,
       status: product?.status || 'DRAFT',
       metaTitle: product?.metaTitle || '',
       metaDescription: product?.metaDescription || '',
@@ -88,7 +91,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
       setLoadingCategories(true);
       const response = await categoriesApi.getAll();
       setCategories(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Error al cargar categorías');
     } finally {
       setLoadingCategories(false);
@@ -112,38 +115,44 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-8 max-w-3xl mx-auto"
+      >
         {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información Básica</CardTitle>
+        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
+          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Información básica
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="pt-6 space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="sku"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SKU *</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">SKU *</FormLabel>
                     <FormControl>
-                      <Input placeholder="PROD-001" {...field} />
+                      <Input placeholder="PROD-001" className="h-10" {...field} />
                     </FormControl>
-                    <FormDescription>Código único del producto</FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Código único del producto
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado *</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">Estado *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10">
                           <SelectValue placeholder="Selecciona un estado" />
                         </SelectTrigger>
                       </FormControl>
@@ -164,11 +173,12 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre *</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-foreground font-medium text-sm">Nombre *</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Nombre del producto"
+                      className="h-10"
                       {...field}
                       onChange={(e) => handleNameChange(e.target.value)}
                     />
@@ -182,12 +192,14 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               control={form.control}
               name="slug"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug *</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-foreground font-medium text-sm">Slug *</FormLabel>
                   <FormControl>
-                    <Input placeholder="nombre-del-producto" {...field} />
+                    <Input placeholder="nombre-del-producto" className="h-10" {...field} />
                   </FormControl>
-                  <FormDescription>URL amigable (se genera automáticamente)</FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
+                    URL amigable (se genera automáticamente)
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -197,12 +209,12 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-foreground font-medium text-sm">Descripción</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Descripción detallada del producto"
-                      className="min-h-32"
+                      className="min-h-28 resize-y text-sm"
                       {...field}
                     />
                   </FormControl>
@@ -215,15 +227,15 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               control={form.control}
               name="categoryId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoría *</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-foreground font-medium text-sm">Categoría *</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                     disabled={loadingCategories}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10">
                         <SelectValue placeholder="Selecciona una categoría" />
                       </SelectTrigger>
                     </FormControl>
@@ -243,123 +255,181 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         </Card>
 
         {/* Pricing */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Precios</CardTitle>
+        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
+          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Precios e impuestos
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
+          <CardContent className="pt-6 space-y-5">
+            <div className="grid gap-5 sm:grid-cols-3">
               <FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio *</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">Precio de venta *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        className="h-10"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
                     </FormControl>
-                    <FormDescription>Precio de venta</FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Precio neto
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="comparePrice"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio de comparación</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">Precio comparación</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        className="h-10"
                         {...field}
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                        }
                       />
                     </FormControl>
-                    <FormDescription>Precio antes de descuento</FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Antes de descuento
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="costPrice"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio de costo</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">Costo</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        className="h-10"
                         {...field}
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                        }
                       />
                     </FormControl>
-                    <FormDescription>Costo del producto</FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Costo del producto
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="taxCode"
+              render={({ field }) => (
+                <FormItem className="space-y-1.5 max-w-xs">
+                  <FormLabel className="text-foreground font-medium text-sm">Código fiscal</FormLabel>
+                  <Select
+                    onValueChange={(value: string) => {
+                      field.onChange(value);
+                      form.setValue(
+                        'taxRate',
+                        value === 'IVA_16' ? 16 : value === 'IVA_11' ? 11 : value === 'IVA_8' ? 8 : 0
+                      );
+                    }}
+                    value={field.value ?? 'IVA_16'}
+                    defaultValue={field.value ?? 'IVA_16'}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Selecciona código" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="IVA_16">IVA 16%</SelectItem>
+                      <SelectItem value="IVA_11">IVA 11%</SelectItem>
+                      <SelectItem value="IVA_8">IVA 8%</SelectItem>
+                      <SelectItem value="EXCENTO">Exento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription className="text-xs text-muted-foreground">
+                    Tipo de IVA
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
         {/* Inventory */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Inventario</CardTitle>
+        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
+          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Inventario
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="pt-6 space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="stock"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Stock *</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">Stock *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         placeholder="0"
+                        className="h-10"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
                       />
                     </FormControl>
-                    <FormDescription>Cantidad disponible</FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Cantidad disponible
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="lowStockAlert"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Alerta de stock bajo</FormLabel>
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-foreground font-medium text-sm">Alerta stock bajo</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         placeholder="10"
+                        className="h-10"
                         {...field}
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(e.target.value ? parseInt(e.target.value, 10) : undefined)
+                        }
                       />
                     </FormControl>
-                    <FormDescription>Cantidad mínima antes de alerta</FormDescription>
+                    <FormDescription className="text-xs text-muted-foreground">
+                      Mínimo antes de alerta
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -369,36 +439,45 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         </Card>
 
         {/* SEO */}
-        <Card>
-          <CardHeader>
-            <CardTitle>SEO</CardTitle>
+        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
+          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              SEO
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pt-6 space-y-5">
             <FormField
               control={form.control}
               name="metaTitle"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meta título</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-foreground font-medium text-sm">Meta título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Título SEO" {...field} />
+                    <Input placeholder="Título para búsqueda" className="h-10" {...field} />
                   </FormControl>
-                  <FormDescription>Título para motores de búsqueda</FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
+                    Título en resultados de búsqueda
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="metaDescription"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meta descripción</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-foreground font-medium text-sm">Meta descripción</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Descripción SEO" {...field} />
+                    <Textarea
+                      placeholder="Descripción para búsqueda"
+                      className="min-h-24 resize-y text-sm"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>Descripción para motores de búsqueda</FormDescription>
+                  <FormDescription className="text-xs text-muted-foreground">
+                    Descripción en resultados de búsqueda
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -407,10 +486,14 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         </Card>
 
         {/* Submit */}
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading}>
+        <div className="flex flex-col items-end gap-3 pt-2 border-t border-border/60">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="min-w-[180px] h-11 font-medium"
+          >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {product ? 'Actualizar Producto' : 'Crear Producto'}
+            {product ? 'Actualizar producto' : 'Crear producto'}
           </Button>
         </div>
       </form>
