@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { UserForm } from '@/components/users/user-form';
 import { usersApi } from '@/lib/api/users';
@@ -15,13 +16,14 @@ type UserFormSubmitData = Parameters<
 
 export default function NewUserPage() {
   const router = useRouter();
+  const t = useTranslations('users');
   const currentUser = useAuthStore((state) => state.user);
   const canManage = canManageUsers(currentUser);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!canManage) {
-      toast.error('No tienes permisos para acceder a esta página');
+      toast.error(t('permissionsError'));
       router.push('/dashboard');
     }
   }, [canManage, router]);
@@ -30,7 +32,7 @@ export default function NewUserPage() {
     try {
       setIsLoading(true);
       if (!data.password || data.password.length < 6) {
-        toast.error('La contraseña es requerida (mínimo 6 caracteres)');
+        toast.error(t('new.passwordRequired'));
         return;
       }
       const payload: CreateUserDto = {
@@ -42,10 +44,10 @@ export default function NewUserPage() {
         status: data.status as UserStatus,
       };
       await usersApi.create(payload);
-      toast.success('Usuario creado exitosamente');
+      toast.success(t('new.createSuccess'));
       router.push('/users');
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Error al crear usuario';
+      const message = error instanceof Error ? error.message : t('new.createError');
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -58,7 +60,7 @@ export default function NewUserPage() {
 
   return (
     <div>
-      <PageHeader title="Nuevo Usuario" description="Crea un nuevo usuario del sistema" />
+      <PageHeader title={t('new.title')} description={t('new.description')} />
 
       <UserForm onSubmit={handleSubmit} isLoading={isLoading} />
     </div>

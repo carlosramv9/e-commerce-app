@@ -13,20 +13,24 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
+import { LocaleSwitcher } from '@/components/ui/locale-switcher';
 
 export function Header() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
+  const t = useTranslations('auth');
 
   const handleLogout = () => {
     logout();
-    toast.success('Sesión cerrada exitosamente');
+    toast.success(t('logoutSuccess'));
     router.push('/login');
   };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white px-6">
-      <div className="flex flex-1 items-center justify-end">
+      <div className="flex flex-1 items-center justify-end gap-2">
+        <LocaleSwitcher />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2">
@@ -37,7 +41,7 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('myAccount')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-gray-600">
               <User className="mr-2 h-4 w-4" />
@@ -45,12 +49,12 @@ export function Header() {
             </DropdownMenuItem>
             <DropdownMenuItem className="text-gray-600">
               <span className="mr-2 h-4 w-4" />
-              <span>Rol: {user?.role}</span>
+              <span>{t('role')}: {user?.role}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-red-600">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Cerrar Sesión</span>
+              <span>{t('logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

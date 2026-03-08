@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,41 +31,46 @@ import { productsApi } from '@/lib/api/products';
 import { Category, Product, Coupon } from '@/lib/types';
 import { toast } from 'sonner';
 
-const couponSchema = z.object({
-  code: z.string().min(1, 'Código es requerido').toUpperCase(),
-  description: z.string().optional(),
-  type: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING']),
-  value: z.number().positive('El valor debe ser mayor a 0'),
-  scope: z.enum(['GLOBAL', 'PRODUCT', 'CATEGORY']),
-  productId: z.string().optional(),
-  categoryId: z.string().optional(),
-  autoApply: z.boolean(),
-  autoApplyCustomerTypes: z.array(z.enum(['NEW', 'REGULAR', 'VIP', 'WHOLESALE'])).optional(),
-  firstPurchaseOnly: z.boolean(),
-  minOrders: z.number().int().min(0).optional(),
-  minPurchaseAmount: z.number().min(0).optional(),
-  maxDiscount: z.number().min(0).optional(),
-  usageLimit: z.number().int().min(0).optional(),
-  usageLimitPerCustomer: z.number().int().min(0).optional(),
-  validFrom: z.string().optional(),
-  validTo: z.string().optional(),
-  active: z.boolean(),
-});
-
-type CouponFormValues = z.infer<typeof couponSchema>;
-
 interface CouponFormProps {
   coupon?: Coupon;
-  onSubmit: (data: CouponFormValues) => Promise<void>;
+  onSubmit: (data: any) => Promise<void>;
   isLoading?: boolean;
 }
 
 export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
+  const t = useTranslations('coupons');
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  const form = useForm<z.infer<typeof couponSchema>>({
+  const couponSchema = useMemo(
+    () =>
+      z.object({
+        code: z.string().min(1, t('form.codeRequired')).toUpperCase(),
+        description: z.string().optional(),
+        type: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING']),
+        value: z.number().positive(t('form.valueRequired')),
+        scope: z.enum(['GLOBAL', 'PRODUCT', 'CATEGORY']),
+        productId: z.string().optional(),
+        categoryId: z.string().optional(),
+        autoApply: z.boolean(),
+        autoApplyCustomerTypes: z.array(z.enum(['NEW', 'REGULAR', 'VIP', 'WHOLESALE'])).optional(),
+        firstPurchaseOnly: z.boolean(),
+        minOrders: z.number().int().min(0).optional(),
+        minPurchaseAmount: z.number().min(0).optional(),
+        maxDiscount: z.number().min(0).optional(),
+        usageLimit: z.number().int().min(0).optional(),
+        usageLimitPerCustomer: z.number().int().min(0).optional(),
+        validFrom: z.string().optional(),
+        validTo: z.string().optional(),
+        active: z.boolean(),
+      }),
+    [t]
+  );
+
+  type CouponFormValues = z.infer<typeof couponSchema>;
+
+  const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
     defaultValues: {
       code: coupon?.code || '',
@@ -105,7 +111,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
       setCategories(categoriesRes.data);
       setProducts(productsRes.data.data);
     } catch (error) {
-      toast.error('Error al cargar datos');
+      toast.error(t('form.loadError'));
     } finally {
       setLoadingData(false);
     }
@@ -117,7 +123,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Información Básica</CardTitle>
+            <CardTitle>{t('form.basicInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -126,15 +132,15 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Código *</FormLabel>
+                    <FormLabel>{t('form.code')} *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="DESCUENTO10"
+                        placeholder={t('form.codePlaceholder')}
                         {...field}
                         onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                       />
                     </FormControl>
-                    <FormDescription>Código único del cupón</FormDescription>
+                    <FormDescription>{t('form.codeDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -145,7 +151,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="active"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado *</FormLabel>
+                    <FormLabel>{t('form.status')} *</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value === 'true')}
                       defaultValue={field.value ? 'true' : 'false'}
@@ -156,8 +162,8 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="true">Activo</SelectItem>
-                        <SelectItem value="false">Inactivo</SelectItem>
+                        <SelectItem value="true">{t('form.statusActive')}</SelectItem>
+                        <SelectItem value="false">{t('form.statusInactive')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -171,9 +177,9 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción</FormLabel>
+                  <FormLabel>{t('form.description')}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Descripción del cupón" {...field} />
+                    <Textarea placeholder={t('form.descriptionPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -185,7 +191,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
         {/* Discount Configuration */}
         <Card>
           <CardHeader>
-            <CardTitle>Configuración del Descuento</CardTitle>
+            <CardTitle>{t('form.discountConfig')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -194,7 +200,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo *</FormLabel>
+                    <FormLabel>{t('form.discountType')} *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -202,8 +208,8 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="PERCENTAGE">Porcentaje</SelectItem>
-                        <SelectItem value="FIXED_AMOUNT">Cantidad Fija</SelectItem>
+                        <SelectItem value="PERCENTAGE">{t('form.typePercentage')}</SelectItem>
+                        <SelectItem value="FIXED_AMOUNT">{t('form.typeFixed')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -216,7 +222,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor *</FormLabel>
+                    <FormLabel>{t('form.value')} *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -227,7 +233,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                       />
                     </FormControl>
                     <FormDescription>
-                      {form.watch('type') === 'PERCENTAGE' ? 'Porcentaje de descuento' : 'Monto fijo en MXN'}
+                      {form.watch('type') === 'PERCENTAGE' ? t('form.valueDescPercentage') : t('form.valueDescFixed')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -241,7 +247,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="scope"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Alcance *</FormLabel>
+                    <FormLabel>{t('form.scope')} *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -249,9 +255,9 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="GLOBAL">Global</SelectItem>
-                        <SelectItem value="PRODUCT">Producto Específico</SelectItem>
-                        <SelectItem value="CATEGORY">Categoría</SelectItem>
+                        <SelectItem value="GLOBAL">{t('form.scopeGlobal')}</SelectItem>
+                        <SelectItem value="PRODUCT">{t('form.scopeProduct')}</SelectItem>
+                        <SelectItem value="CATEGORY">{t('form.scopeCategory')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -265,11 +271,11 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                   name="productId"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Producto</FormLabel>
+                      <FormLabel>{t('form.productLabel')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un producto" />
+                            <SelectValue placeholder={t('form.productPlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -292,11 +298,11 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                   name="categoryId"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Categoría</FormLabel>
+                      <FormLabel>{t('form.scopeCategory')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona una categoría" />
+                            <SelectValue placeholder={t('form.categoryPlaceholder')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -319,7 +325,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
         {/* Auto-Application */}
         <Card>
           <CardHeader>
-            <CardTitle>Auto-Aplicación</CardTitle>
+            <CardTitle>{t('form.autoApply')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField
@@ -336,10 +342,10 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         className="h-4 w-4"
                       />
                     </FormControl>
-                    <FormLabel className="!mt-0">Aplicar automáticamente</FormLabel>
+                    <FormLabel className="!mt-0">{t('form.autoApplyLabel')}</FormLabel>
                   </div>
                   <FormDescription>
-                    El cupón se aplicará automáticamente a clientes elegibles
+                    {t('form.autoApplyDescription')}
                   </FormDescription>
                 </FormItem>
               )}
@@ -352,7 +358,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                   name="autoApplyCustomerTypes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipos de Cliente</FormLabel>
+                      <FormLabel>{t('form.customerTypes')}</FormLabel>
                       <div className="grid grid-cols-2 gap-2 mt-2">
                         {(['NEW', 'REGULAR', 'VIP', 'WHOLESALE'] as const).map((type) => (
                           <div key={type} className="flex items-center gap-2">
@@ -371,10 +377,10 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                               className="h-4 w-4"
                             />
                             <label htmlFor={type} className="text-sm">
-                              {type === 'NEW' && 'Nuevo'}
-                              {type === 'REGULAR' && 'Regular'}
-                              {type === 'VIP' && 'VIP'}
-                              {type === 'WHOLESALE' && 'Mayorista'}
+                              {type === 'NEW' && t('form.typeNew')}
+                              {type === 'REGULAR' && t('form.typeRegular')}
+                              {type === 'VIP' && t('form.typeVip')}
+                              {type === 'WHOLESALE' && t('form.typeWholesale')}
                             </label>
                           </div>
                         ))}
@@ -399,7 +405,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                               className="h-4 w-4"
                             />
                           </FormControl>
-                          <FormLabel className="!mt-0">Solo primera compra</FormLabel>
+                          <FormLabel className="!mt-0">{t('form.firstPurchaseOnly')}</FormLabel>
                         </div>
                       </FormItem>
                     )}
@@ -410,7 +416,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                     name="minOrders"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Mínimo de órdenes</FormLabel>
+                        <FormLabel>{t('form.minOrders')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -433,7 +439,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
         {/* Restrictions */}
         <Card>
           <CardHeader>
-            <CardTitle>Restricciones</CardTitle>
+            <CardTitle>{t('form.restrictions')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -442,7 +448,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="minPurchaseAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Compra mínima</FormLabel>
+                    <FormLabel>{t('form.minPurchase')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -453,7 +459,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                       />
                     </FormControl>
-                    <FormDescription>Monto mínimo de compra requerido</FormDescription>
+                    <FormDescription>{t('form.minPurchaseDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -464,7 +470,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="maxDiscount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descuento máximo</FormLabel>
+                    <FormLabel>{t('form.maxDiscount')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -475,7 +481,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                       />
                     </FormControl>
-                    <FormDescription>Límite máximo de descuento</FormDescription>
+                    <FormDescription>{t('form.maxDiscountDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -488,7 +494,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="usageLimit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Límite de uso total</FormLabel>
+                    <FormLabel>{t('form.usageLimit')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -498,7 +504,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       />
                     </FormControl>
-                    <FormDescription>Usos totales permitidos</FormDescription>
+                    <FormDescription>{t('form.usageLimitDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -509,7 +515,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="usageLimitPerCustomer"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Límite por cliente</FormLabel>
+                    <FormLabel>{t('form.usageLimitPerCustomer')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -519,7 +525,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                         onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       />
                     </FormControl>
-                    <FormDescription>Usos por cliente</FormDescription>
+                    <FormDescription>{t('form.usageLimitPerCustomerDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -531,7 +537,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
         {/* Validity Period */}
         <Card>
           <CardHeader>
-            <CardTitle>Período de Validez</CardTitle>
+            <CardTitle>{t('form.validityPeriod')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -540,7 +546,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="validFrom"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Válido desde</FormLabel>
+                    <FormLabel>{t('form.validFrom')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -554,7 +560,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 name="validTo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Válido hasta</FormLabel>
+                    <FormLabel>{t('form.validUntil')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -570,7 +576,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {coupon ? 'Actualizar Cupón' : 'Crear Cupón'}
+            {coupon ? t('form.submitUpdate') : t('form.submitCreate')}
           </Button>
         </div>
       </form>

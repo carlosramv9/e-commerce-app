@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,9 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
+  const td = useTranslations('dashboard');
+  const tc = useTranslations('common');
+  const to = useTranslations('orders');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
@@ -44,7 +48,7 @@ export default function DashboardPage() {
       setRecentOrders(ordersRes.data.data);
       setLowStockProducts(lowStockRes.data);
     } catch (error: any) {
-      toast.error('Error al cargar dashboard');
+      toast.error(td('loadError'));
     } finally {
       setLoading(false);
     }
@@ -69,10 +73,23 @@ export default function DashboardPage() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: to('statusPending'),
+      CONFIRMED: to('statusConfirmed'),
+      PROCESSING: to('statusProcessing'),
+      SHIPPED: to('statusShipped'),
+      DELIVERED: to('statusDelivered'),
+      CANCELLED: to('statusCancelled'),
+      REFUNDED: to('statusRefunded'),
+    };
+    return labels[status] || status;
+  };
+
   if (loading) {
     return (
       <div>
-        <PageHeader title="Dashboard" description="Resumen general del sistema" />
+        <PageHeader title="Dashboard" description={td('description')} />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-32" />
@@ -84,27 +101,27 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" description="Resumen general del sistema" />
+      <PageHeader title="Dashboard" description={td('description')} />
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard
-          title="Total Órdenes"
+          title={td('stats.totalOrders')}
           value={stats?.totalOrders || 0}
           icon={ShoppingCart}
         />
         <StatCard
-          title="Ingresos Totales"
+          title={td('stats.totalRevenue')}
           value={formatCurrency(stats?.totalRevenue || 0)}
           icon={DollarSign}
         />
         <StatCard
-          title="Clientes"
+          title={td('stats.customers')}
           value={stats?.totalCustomers || 0}
           icon={Users}
         />
         <StatCard
-          title="Productos"
+          title={td('stats.products')}
           value={stats?.totalProducts || 0}
           icon={Package}
         />
@@ -114,21 +131,21 @@ export default function DashboardPage() {
         {/* Recent Orders */}
         <Card>
           <CardHeader>
-            <CardTitle>Órdenes Recientes</CardTitle>
+            <CardTitle>{td('recentOrders')}</CardTitle>
           </CardHeader>
           <CardContent>
             {recentOrders.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-4">
-                No hay órdenes recientes
+                {td('noRecentOrders')}
               </p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Orden</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>{td('colOrder')}</TableHead>
+                    <TableHead>{td('colCustomer')}</TableHead>
+                    <TableHead>{td('colTotal')}</TableHead>
+                    <TableHead>{td('colStatus')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -141,7 +158,7 @@ export default function DashboardPage() {
                       <TableCell>{formatCurrency(order.total)}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(order.status)} variant="secondary">
-                          {order.status}
+                          {getStatusLabel(order.status)}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -157,21 +174,21 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Productos con Stock Bajo
+              {td('lowStock')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {lowStockProducts.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-4">
-                No hay productos con stock bajo
+                {td('noLowStock')}
               </p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Stock</TableHead>
+                    <TableHead>{td('colProduct')}</TableHead>
+                    <TableHead>{td('colSku')}</TableHead>
+                    <TableHead>{td('colStock')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

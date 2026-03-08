@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,26 +28,31 @@ import { Loader2 } from 'lucide-react';
 import { User } from '@/lib/types';
 import { useAuthStore } from '@/lib/store/auth-store';
 
-const userSchema = z.object({
-  firstName: z.string().min(1, 'Nombre es requerido'),
-  lastName: z.string().min(1, 'Apellido es requerido'),
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional().or(z.literal('')),
-  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF', 'CASHIER']),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
-});
-
-type UserFormValues = z.infer<typeof userSchema>;
-
 interface UserFormProps {
   user?: User;
-  onSubmit: (data: UserFormValues) => Promise<void>;
+  onSubmit: (data: any) => Promise<void>;
   isLoading?: boolean;
 }
 
 export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
+  const t = useTranslations('users');
   const currentUser = useAuthStore((state) => state.user);
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
+  const userSchema = useMemo(
+    () =>
+      z.object({
+        firstName: z.string().min(1, t('form.firstNameRequired')),
+        lastName: z.string().min(1, t('form.lastNameRequired')),
+        email: z.string().email(t('form.emailRequired')),
+        password: z.string().min(6, t('form.passwordMinLength')).optional().or(z.literal('')),
+        role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF', 'CASHIER']),
+        status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
+      }),
+    [t]
+  );
+
+  type UserFormValues = z.infer<typeof userSchema>;
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -74,7 +81,7 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Información del Usuario</CardTitle>
+            <CardTitle>{t('form.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -83,9 +90,9 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre *</FormLabel>
+                    <FormLabel>{t('form.firstName')} *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Juan" {...field} />
+                      <Input placeholder={t('form.firstNamePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -97,9 +104,9 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Apellido *</FormLabel>
+                    <FormLabel>{t('form.lastName')} *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Pérez" {...field} />
+                      <Input placeholder={t('form.lastNamePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,9 +119,9 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email *</FormLabel>
+                  <FormLabel>{t('form.email')} *</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="usuario@ejemplo.com" {...field} />
+                    <Input type="email" placeholder={t('form.emailPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,12 +133,12 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{user ? 'Nueva Contraseña (opcional)' : 'Contraseña *'}</FormLabel>
+                  <FormLabel>{user ? t('form.passwordEdit') : t('form.passwordCreate')}</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
                   {user && (
-                    <FormDescription>Deja en blanco para mantener la contraseña actual</FormDescription>
+                    <FormDescription>{t('form.passwordDescription')}</FormDescription>
                   )}
                   <FormMessage />
                 </FormItem>
@@ -144,11 +151,11 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rol *</FormLabel>
+                    <FormLabel>{t('form.role')} *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un rol" />
+                          <SelectValue placeholder={t('form.rolePlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -156,11 +163,11 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
                         {isSuperAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
                         <SelectItem value="MANAGER">Manager</SelectItem>
                         <SelectItem value="STAFF">Staff</SelectItem>
-                        <SelectItem value="CASHIER">Cajero</SelectItem>
+                        <SelectItem value="CASHIER">{t('roleCashier')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      {!isSuperAdmin && 'Solo puedes asignar roles de Manager, Staff o Cajero'}
+                      {!isSuperAdmin && t('form.roleDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -172,17 +179,17 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado *</FormLabel>
+                    <FormLabel>{t('form.status')} *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un estado" />
+                          <SelectValue placeholder={t('form.statusPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ACTIVE">Activo</SelectItem>
-                        <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                        <SelectItem value="SUSPENDED">Suspendido</SelectItem>
+                        <SelectItem value="ACTIVE">{t('form.statusActive')}</SelectItem>
+                        <SelectItem value="INACTIVE">{t('form.statusInactive')}</SelectItem>
+                        <SelectItem value="SUSPENDED">{t('form.statusSuspended')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -196,7 +203,7 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {user ? 'Actualizar Usuario' : 'Crear Usuario'}
+            {user ? t('form.submitUpdate') : t('form.submitCreate')}
           </Button>
         </div>
       </form>

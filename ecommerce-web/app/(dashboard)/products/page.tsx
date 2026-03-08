@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,8 @@ import {
 
 export default function ProductsPage() {
   const router = useRouter();
+  const t = useTranslations('products');
+  const tc = useTranslations('common');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +68,7 @@ export default function ProductsPage() {
       const response = await categoriesApi.getAll();
       setCategories(response.data);
     } catch (error) {
-      toast.error('Error al cargar categorías');
+      toast.error(t('loadCategoriesError'));
     }
   };
 
@@ -85,7 +88,7 @@ export default function ProductsPage() {
       setProducts(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (error) {
-      toast.error('Error al cargar productos');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
@@ -96,10 +99,10 @@ export default function ProductsPage() {
 
     try {
       await productsApi.delete(productToDelete);
-      toast.success('Producto eliminado exitosamente');
+      toast.success(t('deleteSuccess'));
       loadProducts();
     } catch (error) {
-      toast.error('Error al eliminar producto');
+      toast.error(t('deleteError'));
     } finally {
       setDeleteDialogOpen(false);
       setProductToDelete(null);
@@ -115,10 +118,10 @@ export default function ProductsPage() {
 
   const getStatusBadge = (status: ProductStatus) => {
     const variants: Record<ProductStatus, { label: string; className: string }> = {
-      ACTIVE: { label: 'Activo', className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: 'Inactivo', className: 'bg-gray-100 text-gray-800' },
-      DRAFT: { label: 'Borrador', className: 'bg-yellow-100 text-yellow-800' },
-      ARCHIVED: { label: 'Archivado', className: 'bg-red-100 text-red-800' },
+      ACTIVE: { label: tc('statusActive'), className: 'bg-green-100 text-green-800' },
+      INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      DRAFT: { label: t('statusDraft'), className: 'bg-yellow-100 text-yellow-800' },
+      ARCHIVED: { label: t('statusArchived'), className: 'bg-red-100 text-red-800' },
     };
 
     const variant = variants[status];
@@ -132,12 +135,12 @@ export default function ProductsPage() {
   return (
     <div>
       <PageHeader
-        title="Productos"
-        description="Gestiona el catálogo de productos"
+        title={t('title')}
+        description={t('description')}
         action={
           <Button onClick={() => router.push('/products/new')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo Producto
+            {t('newButton')}
           </Button>
         }
       />
@@ -149,7 +152,7 @@ export default function ProductsPage() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar por nombre o SKU..."
+                placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -158,10 +161,10 @@ export default function ProductsPage() {
 
             <Select value={categoryFilter || 'all'} onValueChange={(value) => setCategoryFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todas las categorías" />
+                <SelectValue placeholder={t('allCategories')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
+                <SelectItem value="all">{t('allCategories')}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
@@ -172,14 +175,14 @@ export default function ProductsPage() {
 
             <Select value={statusFilter || 'all'} onValueChange={(value) => setStatusFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los estados" />
+                <SelectValue placeholder={tc('allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="ACTIVE">Activo</SelectItem>
-                <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                <SelectItem value="DRAFT">Borrador</SelectItem>
-                <SelectItem value="ARCHIVED">Archivado</SelectItem>
+                <SelectItem value="all">{tc('allStatuses')}</SelectItem>
+                <SelectItem value="ACTIVE">{tc('statusActive')}</SelectItem>
+                <SelectItem value="INACTIVE">{tc('statusInactive')}</SelectItem>
+                <SelectItem value="DRAFT">{t('statusDraft')}</SelectItem>
+                <SelectItem value="ARCHIVED">{t('statusArchived')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -197,20 +200,20 @@ export default function ProductsPage() {
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron productos</p>
+              <p className="text-gray-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Precio</TableHead>
-                    <TableHead>Stock</TableHead>
+                    <TableHead>{t('colSku')}</TableHead>
+                    <TableHead>{t('colProduct')}</TableHead>
+                    <TableHead>{t('colCategory')}</TableHead>
+                    <TableHead>{t('colPrice')}</TableHead>
+                    <TableHead>{t('colStock')}</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -257,7 +260,7 @@ export default function ProductsPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
                 <div className="text-sm text-gray-500">
-                  Página {page} de {totalPages}
+                  {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -266,7 +269,7 @@ export default function ProductsPage() {
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
                   >
-                    Anterior
+                    {tc('previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -274,7 +277,7 @@ export default function ProductsPage() {
                     onClick={() => setPage(page + 1)}
                     disabled={page === totalPages}
                   >
-                    Siguiente
+                    {tc('next')}
                   </Button>
                 </div>
               </div>
@@ -287,14 +290,14 @@ export default function ProductsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{tc('confirmDeleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El producto será eliminado permanentemente.
+              {tc('undoWarning') + ' ' + t('deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{tc('delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

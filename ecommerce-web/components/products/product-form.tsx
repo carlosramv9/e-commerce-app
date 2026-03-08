@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,36 +30,58 @@ import { categoriesApi } from '@/lib/api/categories';
 import { Category, Product } from '@/lib/types';
 import { toast } from 'sonner';
 
-const productSchema = z.object({
-  sku: z.string().min(1, 'SKU es requerido'),
-  name: z.string().min(1, 'Nombre es requerido'),
-  slug: z.string().min(1, 'Slug es requerido'),
-  description: z.string().optional(),
-  categoryId: z.string().min(1, 'Categoría es requerida'),
-  price: z.number().positive('El precio debe ser mayor a 0'),
-  taxRate: z.number().min(0).max(100).optional(),
-  taxCode: z.enum(['IVA_16', 'IVA_11', 'IVA_8', 'EXCENTO']).optional(),
-  comparePrice: z.number().optional(),
-  costPrice: z.number().optional(),
-  stock: z.number().int().min(0, 'El stock no puede ser negativo'),
-  trackInventory: z.boolean(),
-  lowStockAlert: z.number().int().min(0).optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'ARCHIVED']),
-  metaTitle: z.string().optional(),
-  metaDescription: z.string().optional(),
-});
-
-type ProductFormValues = z.infer<typeof productSchema>;
-
 interface ProductFormProps {
   product?: Product;
   onSubmit: (data: ProductFormValues) => Promise<void>;
   isLoading?: boolean;
 }
 
+type ProductFormValues = {
+  sku: string;
+  name: string;
+  slug: string;
+  description?: string;
+  categoryId: string;
+  price: number;
+  taxRate?: number;
+  taxCode?: 'IVA_16' | 'IVA_11' | 'IVA_8' | 'EXCENTO';
+  comparePrice?: number;
+  costPrice?: number;
+  stock: number;
+  trackInventory: boolean;
+  lowStockAlert?: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'ARCHIVED';
+  metaTitle?: string;
+  metaDescription?: string;
+};
+
 export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) {
+  const t = useTranslations('products');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const productSchema = useMemo(
+    () =>
+      z.object({
+        sku: z.string().min(1, t('form.skuRequired')),
+        name: z.string().min(1, t('form.nameRequired')),
+        slug: z.string().min(1, t('form.slugRequired')),
+        description: z.string().optional(),
+        categoryId: z.string().min(1, t('form.categoryRequired')),
+        price: z.number().positive(t('form.salePriceRequired')),
+        taxRate: z.number().min(0).max(100).optional(),
+        taxCode: z.enum(['IVA_16', 'IVA_11', 'IVA_8', 'EXCENTO']).optional(),
+        comparePrice: z.number().optional(),
+        costPrice: z.number().optional(),
+        stock: z.number().int().min(0, t('form.stockRequired')),
+        trackInventory: z.boolean(),
+        lowStockAlert: z.number().int().min(0).optional(),
+        status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'ARCHIVED']),
+        metaTitle: z.string().optional(),
+        metaDescription: z.string().optional(),
+      }),
+    [t]
+  );
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -92,7 +115,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
       const response = await categoriesApi.getAll();
       setCategories(response.data);
     } catch {
-      toast.error('Error al cargar categorías');
+      toast.error(t('loadCategoriesError'));
     } finally {
       setLoadingCategories(false);
     }
@@ -123,7 +146,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
           <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Información básica
+              {t('form.basicInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
@@ -133,12 +156,12 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="sku"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">SKU *</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.sku')} *</FormLabel>
                     <FormControl>
-                      <Input placeholder="PROD-001" className="h-10" {...field} />
+                      <Input placeholder={t('form.skuPlaceholder')} className="h-10" {...field} />
                     </FormControl>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Código único del producto
+                      {t('form.skuDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -149,18 +172,18 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="status"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">Estado *</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.status')} *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Selecciona un estado" />
+                          <SelectValue placeholder={t('form.statusPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="DRAFT">Borrador</SelectItem>
-                        <SelectItem value="ACTIVE">Activo</SelectItem>
-                        <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                        <SelectItem value="ARCHIVED">Archivado</SelectItem>
+                        <SelectItem value="DRAFT">{t('form.statusDraft')}</SelectItem>
+                        <SelectItem value="ACTIVE">{t('form.statusActive')}</SelectItem>
+                        <SelectItem value="INACTIVE">{t('form.statusInactive')}</SelectItem>
+                        <SelectItem value="ARCHIVED">{t('form.statusArchived')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -174,10 +197,10 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="name"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-foreground font-medium text-sm">Nombre *</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.name')} *</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nombre del producto"
+                      placeholder={t('form.namePlaceholder')}
                       className="h-10"
                       {...field}
                       onChange={(e) => handleNameChange(e.target.value)}
@@ -193,12 +216,12 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="slug"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-foreground font-medium text-sm">Slug *</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.slug')} *</FormLabel>
                   <FormControl>
-                    <Input placeholder="nombre-del-producto" className="h-10" {...field} />
+                    <Input placeholder={t('form.slugPlaceholder')} className="h-10" {...field} />
                   </FormControl>
                   <FormDescription className="text-xs text-muted-foreground">
-                    URL amigable (se genera automáticamente)
+                    {t('form.slugDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -210,10 +233,10 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="description"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-foreground font-medium text-sm">Descripción</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Descripción detallada del producto"
+                      placeholder={t('form.descriptionPlaceholder')}
                       className="min-h-28 resize-y text-sm"
                       {...field}
                     />
@@ -228,7 +251,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="categoryId"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-foreground font-medium text-sm">Categoría *</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.category')} *</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -236,7 +259,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                   >
                     <FormControl>
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Selecciona una categoría" />
+                        <SelectValue placeholder={t('form.categoryPlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -258,7 +281,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
           <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Precios e impuestos
+              {t('form.pricing')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
@@ -268,7 +291,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="price"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">Precio de venta *</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.salePrice')} *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -280,7 +303,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                       />
                     </FormControl>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Precio neto
+                      {t('form.salePriceDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -291,7 +314,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="comparePrice"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">Precio comparación</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.comparePrice')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -306,7 +329,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                       />
                     </FormControl>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Antes de descuento
+                      {t('form.comparePriceDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -317,7 +340,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="costPrice"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">Costo</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.costPrice')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -332,7 +355,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                       />
                     </FormControl>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Costo del producto
+                      {t('form.costPriceDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -344,7 +367,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="taxCode"
               render={({ field }) => (
                 <FormItem className="space-y-1.5 max-w-xs">
-                  <FormLabel className="text-foreground font-medium text-sm">Código fiscal</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.taxCode')}</FormLabel>
                   <Select
                     onValueChange={(value: string) => {
                       field.onChange(value);
@@ -358,7 +381,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                   >
                     <FormControl>
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Selecciona código" />
+                        <SelectValue placeholder={t('form.taxCodePlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -369,7 +392,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                     </SelectContent>
                   </Select>
                   <FormDescription className="text-xs text-muted-foreground">
-                    Tipo de IVA
+                    {t('form.taxCodeDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -382,7 +405,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
           <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Inventario
+              {t('form.inventory')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
@@ -392,7 +415,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="stock"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">Stock *</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.stock')} *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -403,7 +426,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                       />
                     </FormControl>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Cantidad disponible
+                      {t('form.stockDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -414,7 +437,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 name="lowStockAlert"
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
-                    <FormLabel className="text-foreground font-medium text-sm">Alerta stock bajo</FormLabel>
+                    <FormLabel className="text-foreground font-medium text-sm">{t('form.lowStockAlert')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -428,7 +451,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                       />
                     </FormControl>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Mínimo antes de alerta
+                      {t('form.lowStockDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -442,7 +465,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
           <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              SEO
+              {t('form.seo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
@@ -451,12 +474,12 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="metaTitle"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-foreground font-medium text-sm">Meta título</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.metaTitle')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Título para búsqueda" className="h-10" {...field} />
+                    <Input placeholder={t('form.metaTitlePlaceholder')} className="h-10" {...field} />
                   </FormControl>
                   <FormDescription className="text-xs text-muted-foreground">
-                    Título en resultados de búsqueda
+                    {t('form.metaTitleDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -467,16 +490,16 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               name="metaDescription"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-foreground font-medium text-sm">Meta descripción</FormLabel>
+                  <FormLabel className="text-foreground font-medium text-sm">{t('form.metaDescription')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Descripción para búsqueda"
+                      placeholder={t('form.metaDescriptionPlaceholder')}
                       className="min-h-24 resize-y text-sm"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription className="text-xs text-muted-foreground">
-                    Descripción en resultados de búsqueda
+                    {t('form.metaDescriptionDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -493,7 +516,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
             className="min-w-[180px] h-11 font-medium"
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {product ? 'Actualizar producto' : 'Crear producto'}
+            {product ? t('form.submitUpdate') : t('form.submitCreate')}
           </Button>
         </div>
       </form>

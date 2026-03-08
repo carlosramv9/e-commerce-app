@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Patch, Body, Query, UseGuards, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
+import { CreateOrderDto } from './dto/create-order.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -28,6 +29,13 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get order statistics' })
   getStats() {
     return this.ordersService.getStats();
+  }
+
+  @Post()
+  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF')
+  @ApiOperation({ summary: 'Create a new sale (order)' })
+  create(@Body() createOrderDto: CreateOrderDto) {
+    return this.ordersService.create(createOrderDto);
   }
 
   @Get(':id')

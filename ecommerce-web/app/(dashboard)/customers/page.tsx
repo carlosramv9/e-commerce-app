@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,8 @@ import { toast } from 'sonner';
 
 export default function CustomersPage() {
   const router = useRouter();
+  const t = useTranslations('customers');
+  const tc = useTranslations('common');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -58,7 +61,7 @@ export default function CustomersPage() {
       setCustomers(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (error) {
-      toast.error('Error al cargar clientes');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
@@ -73,10 +76,10 @@ export default function CustomersPage() {
 
   const getTypeBadge = (type: CustomerType) => {
     const variants: Record<CustomerType, { label: string; className: string }> = {
-      NEW: { label: 'Nuevo', className: 'bg-blue-100 text-blue-800' },
-      REGULAR: { label: 'Regular', className: 'bg-green-100 text-green-800' },
-      VIP: { label: 'VIP', className: 'bg-purple-100 text-purple-800' },
-      WHOLESALE: { label: 'Mayorista', className: 'bg-orange-100 text-orange-800' },
+      NEW: { label: t('typeNew'), className: 'bg-blue-100 text-blue-800' },
+      REGULAR: { label: t('typeRegular'), className: 'bg-green-100 text-green-800' },
+      VIP: { label: t('typeVip'), className: 'bg-purple-100 text-purple-800' },
+      WHOLESALE: { label: t('typeWholesale'), className: 'bg-orange-100 text-orange-800' },
     };
 
     const variant = variants[type];
@@ -89,9 +92,9 @@ export default function CustomersPage() {
 
   const getStatusBadge = (status: CustomerStatus) => {
     const variants: Record<CustomerStatus, { label: string; className: string }> = {
-      ACTIVE: { label: 'Activo', className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: 'Inactivo', className: 'bg-gray-100 text-gray-800' },
-      BLOCKED: { label: 'Bloqueado', className: 'bg-red-100 text-red-800' },
+      ACTIVE: { label: tc('statusActive'), className: 'bg-green-100 text-green-800' },
+      INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      BLOCKED: { label: tc('statusBlocked'), className: 'bg-red-100 text-red-800' },
     };
 
     const variant = variants[status];
@@ -105,12 +108,12 @@ export default function CustomersPage() {
   return (
     <div>
       <PageHeader
-        title="Clientes"
-        description="Gestiona la base de clientes"
+        title={t('title')}
+        description={t('description')}
         action={
           <Button onClick={() => router.push('/customers/new')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo Cliente
+            {t('newButton')}
           </Button>
         }
       />
@@ -122,7 +125,7 @@ export default function CustomersPage() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar por nombre o email..."
+                placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -131,26 +134,26 @@ export default function CustomersPage() {
 
             <Select value={typeFilter || 'all'} onValueChange={(value) => setTypeFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los tipos" />
+                <SelectValue placeholder={t('allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
-                <SelectItem value="NEW">Nuevo</SelectItem>
-                <SelectItem value="REGULAR">Regular</SelectItem>
-                <SelectItem value="VIP">VIP</SelectItem>
-                <SelectItem value="WHOLESALE">Mayorista</SelectItem>
+                <SelectItem value="all">{t('allTypes')}</SelectItem>
+                <SelectItem value="NEW">{t('typeNew')}</SelectItem>
+                <SelectItem value="REGULAR">{t('typeRegular')}</SelectItem>
+                <SelectItem value="VIP">{t('typeVip')}</SelectItem>
+                <SelectItem value="WHOLESALE">{t('typeWholesale')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={statusFilter || 'all'} onValueChange={(value) => setStatusFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los estados" />
+                <SelectValue placeholder={tc('allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="ACTIVE">Activo</SelectItem>
-                <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                <SelectItem value="BLOCKED">Bloqueado</SelectItem>
+                <SelectItem value="all">{tc('allStatuses')}</SelectItem>
+                <SelectItem value="ACTIVE">{tc('statusActive')}</SelectItem>
+                <SelectItem value="INACTIVE">{tc('statusInactive')}</SelectItem>
+                <SelectItem value="BLOCKED">{tc('statusBlocked')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -168,21 +171,21 @@ export default function CustomersPage() {
             </div>
           ) : customers.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron clientes</p>
+              <p className="text-gray-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Teléfono</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Órdenes</TableHead>
-                    <TableHead>Total Gastado</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t('colName')}</TableHead>
+                    <TableHead>{t('colEmail')}</TableHead>
+                    <TableHead>{t('colPhone')}</TableHead>
+                    <TableHead>{t('colType')}</TableHead>
+                    <TableHead>{t('colOrders')}</TableHead>
+                    <TableHead>{t('colSpent')}</TableHead>
+                    <TableHead>{t('detail.status')}</TableHead>
+                    <TableHead className="text-right">{tc('view')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -204,7 +207,7 @@ export default function CustomersPage() {
                           onClick={() => router.push(`/customers/${customer.id}`)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          Ver
+                          {tc('view')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -215,7 +218,7 @@ export default function CustomersPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
                 <div className="text-sm text-gray-500">
-                  Página {page} de {totalPages}
+                  {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -224,7 +227,7 @@ export default function CustomersPage() {
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
                   >
-                    Anterior
+                    {tc('previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -232,7 +235,7 @@ export default function CustomersPage() {
                     onClick={() => setPage(page + 1)}
                     disabled={page === totalPages}
                   >
-                    Siguiente
+                    {tc('next')}
                   </Button>
                 </div>
               </div>

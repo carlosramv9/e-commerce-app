@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { UserForm } from '@/components/users/user-form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +13,7 @@ import { toast } from 'sonner';
 
 export default function EditUserPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const t = useTranslations('users');
   const currentUser = useAuthStore((state) => state.user);
   const canManage = canManageUsers(currentUser);
   const [user, setUser] = useState<User | null>(null);
@@ -20,7 +22,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     if (!canManage) {
-      toast.error('No tienes permisos para acceder a esta página');
+      toast.error(t('permissionsError'));
       router.push('/dashboard');
       return;
     }
@@ -33,7 +35,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
       const response = await usersApi.getOne(params.id);
       setUser(response.data);
     } catch (error) {
-      toast.error('Error al cargar usuario');
+      toast.error(t('edit.loadError'));
       router.push('/users');
     } finally {
       setLoading(false);
@@ -44,10 +46,10 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     try {
       setIsSubmitting(true);
       await usersApi.update(params.id, data);
-      toast.success('Usuario actualizado exitosamente');
+      toast.success(t('edit.updateSuccess'));
       router.push('/users');
     } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar usuario');
+      toast.error(error.message || t('edit.updateError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -60,7 +62,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
   if (loading) {
     return (
       <div>
-        <PageHeader title="Editar Usuario" description="Modifica la información del usuario" />
+        <PageHeader title={t('edit.title')} description={t('edit.description')} />
         <div className="space-y-6">
           <Skeleton className="h-64" />
         </div>
@@ -74,7 +76,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <PageHeader title="Editar Usuario" description="Modifica la información del usuario" />
+      <PageHeader title={t('edit.title')} description={t('edit.description')} />
 
       <UserForm user={user} onSubmit={handleSubmit} isLoading={isSubmitting} />
     </div>

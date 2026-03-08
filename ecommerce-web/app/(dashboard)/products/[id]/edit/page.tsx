@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProductForm } from '@/components/products/product-form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +17,7 @@ export default function EditProductPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useTranslations('products');
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,12 +28,12 @@ export default function EditProductPage({
       const response = await productsApi.getOne(id);
       setProduct(response.data);
     } catch {
-      toast.error('Error al cargar producto');
+      toast.error(t('edit.loadError'));
       router.push('/products');
     } finally {
       setLoading(false);
     }
-  }, [id, router]);
+  }, [id, router, t]);
 
   useEffect(() => {
     loadProduct();
@@ -43,11 +45,11 @@ export default function EditProductPage({
     try {
       setIsSubmitting(true);
       await productsApi.update(id, data as UpdateProductDto);
-      toast.success('Producto actualizado exitosamente');
+      toast.success(t('edit.updateSuccess'));
       router.push('/products');
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : 'Error al actualizar producto';
+        error instanceof Error ? error.message : t('edit.updateError');
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -58,8 +60,8 @@ export default function EditProductPage({
     return (
       <div>
         <PageHeader
-          title="Editar Producto"
-          description="Modifica la información del producto"
+          title={t('edit.title')}
+          description={t('edit.description')}
         />
         <div className="space-y-6">
           <Skeleton className="h-64" />
@@ -77,8 +79,8 @@ export default function EditProductPage({
   return (
     <div>
       <PageHeader
-        title="Editar Producto"
-        description="Modifica la información del producto"
+        title={t('edit.title')}
+        description={t('edit.description')}
       />
 
       <ProductForm product={product} onSubmit={handleSubmit} isLoading={isSubmitting} />

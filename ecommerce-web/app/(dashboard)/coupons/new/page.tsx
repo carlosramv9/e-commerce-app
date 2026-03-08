@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { CouponForm } from '@/components/coupons/coupon-form';
 import { couponsApi } from '@/lib/api/coupons';
@@ -9,16 +10,17 @@ import { toast } from 'sonner';
 
 export default function NewCouponPage() {
   const router = useRouter();
+  const t = useTranslations('coupons');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (data: any) => {
     try {
       setIsLoading(true);
       await couponsApi.create(data);
-      toast.success('Cupón creado exitosamente');
+      toast.success(t('new.createSuccess'));
       router.push('/coupons');
     } catch (error: any) {
-      toast.error(error.message || 'Error al crear cupón');
+      toast.error(error.message || t('new.createError'));
     } finally {
       setIsLoading(false);
     }
@@ -26,7 +28,7 @@ export default function NewCouponPage() {
 
   return (
     <div>
-      <PageHeader title="Nuevo Cupón" description="Crea un nuevo cupón de descuento" />
+      <PageHeader title={t('new.title')} description={t('new.description')} />
 
       <CouponForm onSubmit={handleSubmit} isLoading={isLoading} />
     </div>

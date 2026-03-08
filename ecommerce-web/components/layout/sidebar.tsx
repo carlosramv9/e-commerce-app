@@ -14,59 +14,36 @@ import {
   Store,
 } from 'lucide-react';
 import { useAuthStore, canManageUsers } from '@/lib/store/auth-store';
+import { useTranslations } from 'next-intl';
 
-const menuItems = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'Productos',
-    href: '/products',
-    icon: Package,
-  },
-  {
-    title: 'Categorías',
-    href: '/categories',
-    icon: FolderTree,
-  },
-  {
-    title: 'Ventas',
-    href: '/orders',
-    icon: ShoppingCart,
-  },
-  {
-    title: 'POS',
-    href: '/pos',
-    icon: Store,
-  },
-  {
-    title: 'Clientes',
-    href: '/customers',
-    icon: Users,
-  },
-  {
-    title: 'Cupones',
-    href: '/coupons',
-    icon: Ticket,
-  },
-  {
-    title: 'Usuarios',
-    href: '/users',
-    icon: Shield,
-    adminOnly: true,
-  },
+type MenuItemKey =
+  | 'dashboard'
+  | 'products'
+  | 'categories'
+  | 'orders'
+  | 'pos'
+  | 'customers'
+  | 'coupons'
+  | 'users';
+
+const menuItems: { key: MenuItemKey; href: string; icon: React.ElementType; adminOnly?: boolean }[] = [
+  { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { key: 'products', href: '/products', icon: Package },
+  { key: 'categories', href: '/categories', icon: FolderTree },
+  { key: 'orders', href: '/orders', icon: ShoppingCart },
+  { key: 'pos', href: '/pos', icon: Store },
+  { key: 'customers', href: '/customers', icon: Users },
+  { key: 'coupons', href: '/coupons', icon: Ticket },
+  { key: 'users', href: '/users', icon: Shield, adminOnly: true },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  const t = useTranslations('nav');
 
   const visibleMenuItems = menuItems.filter((item) => {
-    if (item.adminOnly) {
-      return canManageUsers(user);
-    }
+    if (item.adminOnly) return canManageUsers(user);
     return true;
   });
 
@@ -97,7 +74,7 @@ export function Sidebar() {
                     )}
                   >
                     <Icon className="h-5 w-5" />
-                    {item.title}
+                    {t(item.key)}
                   </Link>
                 </li>
               );

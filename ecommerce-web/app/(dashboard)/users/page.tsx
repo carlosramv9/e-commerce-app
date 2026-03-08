@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,6 +41,8 @@ import {
 
 export default function UsersPage() {
   const router = useRouter();
+  const t = useTranslations('users');
+  const tc = useTranslations('common');
   const currentUser = useAuthStore((state) => state.user);
   const canManage = canManageUsers(currentUser);
   const [users, setUsers] = useState<User[]>([]);
@@ -53,7 +56,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!canManage) {
-      toast.error('No tienes permisos para acceder a esta página');
+      toast.error(t('permissionsError'));
       router.push('/dashboard');
       return;
     }
@@ -75,7 +78,7 @@ export default function UsersPage() {
       setUsers(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (error) {
-      toast.error('Error al cargar usuarios');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
@@ -86,10 +89,10 @@ export default function UsersPage() {
 
     try {
       await usersApi.delete(userToDelete);
-      toast.success('Usuario eliminado exitosamente');
+      toast.success(t('deleteSuccess'));
       loadUsers();
     } catch (error) {
-      toast.error('Error al eliminar usuario');
+      toast.error(t('deleteError'));
     } finally {
       setDeleteDialogOpen(false);
       setUserToDelete(null);
@@ -98,11 +101,11 @@ export default function UsersPage() {
 
   const getRoleBadge = (role: UserRole) => {
     const variants: Record<UserRole, { label: string; className: string }> = {
-      SUPER_ADMIN: { label: 'Super Admin', className: 'bg-red-100 text-red-800' },
-      ADMIN: { label: 'Admin', className: 'bg-orange-100 text-orange-800' },
-      MANAGER: { label: 'Manager', className: 'bg-blue-100 text-blue-800' },
-      STAFF: { label: 'Staff', className: 'bg-green-100 text-green-800' },
-      CASHIER: { label: 'Cajero', className: 'bg-purple-100 text-purple-800' },
+      SUPER_ADMIN: { label: t('roleSuperAdmin'), className: 'bg-red-100 text-red-800' },
+      ADMIN: { label: t('roleAdmin'), className: 'bg-orange-100 text-orange-800' },
+      MANAGER: { label: t('roleManager'), className: 'bg-blue-100 text-blue-800' },
+      STAFF: { label: t('roleStaff'), className: 'bg-green-100 text-green-800' },
+      CASHIER: { label: t('roleCashier'), className: 'bg-purple-100 text-purple-800' },
     };
 
     const variant = variants[role];
@@ -115,9 +118,9 @@ export default function UsersPage() {
 
   const getStatusBadge = (status: UserStatus) => {
     const variants: Record<UserStatus, { label: string; className: string }> = {
-      ACTIVE: { label: 'Activo', className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: 'Inactivo', className: 'bg-gray-100 text-gray-800' },
-      SUSPENDED: { label: 'Suspendido', className: 'bg-red-100 text-red-800' },
+      ACTIVE: { label: tc('statusActive'), className: 'bg-green-100 text-green-800' },
+      INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      SUSPENDED: { label: tc('statusSuspended'), className: 'bg-red-100 text-red-800' },
     };
 
     const variant = variants[status];
@@ -135,12 +138,12 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="Usuarios"
-        description="Gestiona los usuarios del sistema"
+        title={t('title')}
+        description={t('description')}
         action={
           <Button onClick={() => router.push('/users/new')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo Usuario
+            {t('newButton')}
           </Button>
         }
       />
@@ -151,27 +154,27 @@ export default function UsersPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <Select value={roleFilter || 'all'} onValueChange={(value) => setRoleFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los roles" />
+                <SelectValue placeholder={t('allRoles')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los roles</SelectItem>
-                <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
-                <SelectItem value="MANAGER">Manager</SelectItem>
-                <SelectItem value="STAFF">Staff</SelectItem>
-                <SelectItem value="CASHIER">Cajero</SelectItem>
+                <SelectItem value="all">{t('allRoles')}</SelectItem>
+                <SelectItem value="SUPER_ADMIN">{t('roleSuperAdmin')}</SelectItem>
+                <SelectItem value="ADMIN">{t('roleAdmin')}</SelectItem>
+                <SelectItem value="MANAGER">{t('roleManager')}</SelectItem>
+                <SelectItem value="STAFF">{t('roleStaff')}</SelectItem>
+                <SelectItem value="CASHIER">{t('roleCashier')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={statusFilter || 'all'} onValueChange={(value) => setStatusFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los estados" />
+                <SelectValue placeholder={tc('allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="ACTIVE">Activo</SelectItem>
-                <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                <SelectItem value="BLOCKED">Bloqueado</SelectItem>
+                <SelectItem value="all">{tc('allStatuses')}</SelectItem>
+                <SelectItem value="ACTIVE">{tc('statusActive')}</SelectItem>
+                <SelectItem value="INACTIVE">{tc('statusInactive')}</SelectItem>
+                <SelectItem value="BLOCKED">{tc('statusBlocked')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -189,18 +192,18 @@ export default function UsersPage() {
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron usuarios</p>
+              <p className="text-gray-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t('colName')}</TableHead>
+                    <TableHead>{t('colEmail')}</TableHead>
+                    <TableHead>{t('colRole')}</TableHead>
+                    <TableHead>{t('colStatus')}</TableHead>
+                    <TableHead className="text-right">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -243,7 +246,7 @@ export default function UsersPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
                 <div className="text-sm text-gray-500">
-                  Página {page} de {totalPages}
+                  {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -252,7 +255,7 @@ export default function UsersPage() {
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
                   >
-                    Anterior
+                    {tc('previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -260,7 +263,7 @@ export default function UsersPage() {
                     onClick={() => setPage(page + 1)}
                     disabled={page === totalPages}
                   >
-                    Siguiente
+                    {tc('next')}
                   </Button>
                 </div>
               </div>
@@ -273,14 +276,14 @@ export default function UsersPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{tc('confirmDeleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El usuario será eliminado permanentemente.
+              {t('deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{tc('delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

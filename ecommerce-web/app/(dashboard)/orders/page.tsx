@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,6 +32,8 @@ import { es } from 'date-fns/locale';
 
 export default function OrdersPage() {
   const router = useRouter();
+  const t = useTranslations('orders');
+  const tc = useTranslations('common');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -50,7 +53,7 @@ export default function OrdersPage() {
       setOrders(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch {
-      toast.error('Error al cargar ventas');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
@@ -69,13 +72,13 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: OrderStatus) => {
     const variants: Record<OrderStatus, { label: string; className: string }> = {
-      PENDING: { label: 'Pendiente', className: 'bg-yellow-100 text-yellow-800' },
-      CONFIRMED: { label: 'Confirmada', className: 'bg-blue-100 text-blue-800' },
-      PROCESSING: { label: 'Procesando', className: 'bg-purple-100 text-purple-800' },
-      SHIPPED: { label: 'Enviada', className: 'bg-cyan-100 text-cyan-800' },
-      DELIVERED: { label: 'Entregada', className: 'bg-green-100 text-green-800' },
-      CANCELLED: { label: 'Cancelada', className: 'bg-red-100 text-red-800' },
-      REFUNDED: { label: 'Reembolsada', className: 'bg-orange-100 text-orange-800' },
+      PENDING: { label: t('statusPending'), className: 'bg-yellow-100 text-yellow-800' },
+      CONFIRMED: { label: t('statusConfirmed'), className: 'bg-blue-100 text-blue-800' },
+      PROCESSING: { label: t('statusProcessing'), className: 'bg-purple-100 text-purple-800' },
+      SHIPPED: { label: t('statusShipped'), className: 'bg-cyan-100 text-cyan-800' },
+      DELIVERED: { label: t('statusDelivered'), className: 'bg-green-100 text-green-800' },
+      CANCELLED: { label: t('statusCancelled'), className: 'bg-red-100 text-red-800' },
+      REFUNDED: { label: t('statusRefunded'), className: 'bg-orange-100 text-orange-800' },
     };
 
     const variant = variants[status];
@@ -89,12 +92,12 @@ export default function OrdersPage() {
   return (
     <div>
       <PageHeader
-        title="Ventas"
-        description="Historial de ventas realizadas a clientes"
+        title={t('title')}
+        description={t('description')}
         action={
           <Button onClick={() => router.push('/pos')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nueva venta (POS)
+            {t('newButton')}
           </Button>
         }
       />
@@ -105,16 +108,16 @@ export default function OrdersPage() {
           <div className="grid gap-4 md:grid-cols-1 lg:w-1/3">
             <Select value={statusFilter || 'all'} onValueChange={(value) => setStatusFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los estados" />
+                <SelectValue placeholder={t('allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="PENDING">Pendiente</SelectItem>
-                <SelectItem value="CONFIRMED">Confirmada</SelectItem>
-                <SelectItem value="PROCESSING">Procesando</SelectItem>
-                <SelectItem value="SHIPPED">Enviada</SelectItem>
-                <SelectItem value="DELIVERED">Entregada</SelectItem>
-                <SelectItem value="CANCELLED">Cancelada</SelectItem>
+                <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                <SelectItem value="PENDING">{t('statusPending')}</SelectItem>
+                <SelectItem value="CONFIRMED">{t('statusConfirmed')}</SelectItem>
+                <SelectItem value="PROCESSING">{t('statusProcessing')}</SelectItem>
+                <SelectItem value="SHIPPED">{t('statusShipped')}</SelectItem>
+                <SelectItem value="DELIVERED">{t('statusDelivered')}</SelectItem>
+                <SelectItem value="CANCELLED">{t('statusCancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -132,20 +135,20 @@ export default function OrdersPage() {
             </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron ventas</p>
+              <p className="text-gray-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nº venta</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t('colOrderNum')}</TableHead>
+                    <TableHead>{t('colCustomer')}</TableHead>
+                    <TableHead>{t('colDate')}</TableHead>
+                    <TableHead>{t('colItems')}</TableHead>
+                    <TableHead>{t('colTotal')}</TableHead>
+                    <TableHead>{tc('allStatuses')}</TableHead>
+                    <TableHead className="text-right">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -178,7 +181,7 @@ export default function OrdersPage() {
                           onClick={() => router.push(`/orders/${order.id}`)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          Ver
+                          {tc('view')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -189,7 +192,7 @@ export default function OrdersPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
                 <div className="text-sm text-gray-500">
-                  Página {page} de {totalPages}
+                  {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -198,7 +201,7 @@ export default function OrdersPage() {
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
                   >
-                    Anterior
+                    {tc('previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -206,7 +209,7 @@ export default function OrdersPage() {
                     onClick={() => setPage(page + 1)}
                     disabled={page === totalPages}
                   >
-                    Siguiente
+                    {tc('next')}
                   </Button>
                 </div>
               </div>

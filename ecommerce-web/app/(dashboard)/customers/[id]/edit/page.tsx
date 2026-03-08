@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,6 +23,8 @@ export default function EditCustomerPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useTranslations('customers');
+  const tc = useTranslations('common');
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +35,7 @@ export default function EditCustomerPage({
       const response = await customersApi.getOne(id);
       setCustomer(response.data);
     } catch {
-      toast.error('Error al cargar cliente');
+      toast.error(t('edit.loadError'));
       router.push('/customers');
     } finally {
       setLoading(false);
@@ -47,11 +50,11 @@ export default function EditCustomerPage({
     try {
       setIsSubmitting(true);
       await customersApi.update(id, data as UpdateCustomerDto);
-      toast.success('Cliente actualizado exitosamente');
+      toast.success(t('edit.updateSuccess'));
       router.push(`/customers/${id}`);
     } catch (error: unknown) {
       const message =
-        error instanceof Error ? error.message : 'Error al actualizar cliente';
+        error instanceof Error ? error.message : t('edit.updateError');
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -62,8 +65,8 @@ export default function EditCustomerPage({
     return (
       <div>
         <PageHeader
-          title="Editar Cliente"
-          description="Cargando información del cliente..."
+          title={t('edit.titlePrefix')}
+          description={t('edit.descriptionLoading')}
         />
         <div className="space-y-6 max-w-2xl mx-auto">
           <Skeleton className="h-56" />
@@ -78,12 +81,12 @@ export default function EditCustomerPage({
   return (
     <div>
       <PageHeader
-        title={`Editar: ${customer.firstName} ${customer.lastName}`}
-        description="Modifica la información del cliente"
+        title={`${t('edit.titlePrefix')}: ${customer.firstName} ${customer.lastName}`}
+        description={t('edit.description')}
         action={
           <Button variant="outline" onClick={() => router.push(`/customers/${id}`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
+            {tc('back')}
           </Button>
         }
       />

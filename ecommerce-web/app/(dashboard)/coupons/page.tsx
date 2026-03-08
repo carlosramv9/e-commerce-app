@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,6 +42,8 @@ import { es } from 'date-fns/locale';
 
 export default function CouponsPage() {
   const router = useRouter();
+  const t = useTranslations('coupons');
+  const tc = useTranslations('common');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [scopeFilter, setScopeFilter] = useState('');
@@ -67,7 +70,7 @@ export default function CouponsPage() {
       setCoupons(response.data.data);
       setTotalPages(response.data.meta.totalPages);
     } catch (error) {
-      toast.error('Error al cargar cupones');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
@@ -78,10 +81,10 @@ export default function CouponsPage() {
 
     try {
       await couponsApi.delete(couponToDelete);
-      toast.success('Cupón eliminado exitosamente');
+      toast.success(t('deleteSuccess'));
       loadCoupons();
     } catch (error) {
-      toast.error('Error al eliminar cupón');
+      toast.error(t('deleteError'));
     } finally {
       setDeleteDialogOpen(false);
       setCouponToDelete(null);
@@ -98,9 +101,9 @@ export default function CouponsPage() {
 
   const getScopeBadge = (scope: CouponScope) => {
     const variants: Record<CouponScope, { label: string; className: string }> = {
-      GLOBAL: { label: 'Global', className: 'bg-blue-100 text-blue-800' },
-      PRODUCT: { label: 'Producto', className: 'bg-green-100 text-green-800' },
-      CATEGORY: { label: 'Categoría', className: 'bg-purple-100 text-purple-800' },
+      GLOBAL: { label: t('scopeGlobal'), className: 'bg-blue-100 text-blue-800' },
+      PRODUCT: { label: t('scopeProduct'), className: 'bg-green-100 text-green-800' },
+      CATEGORY: { label: t('scopeCategory'), className: 'bg-purple-100 text-purple-800' },
     };
 
     const variant = variants[scope];
@@ -126,12 +129,12 @@ export default function CouponsPage() {
   return (
     <div>
       <PageHeader
-        title="Cupones"
-        description="Gestiona cupones y descuentos"
+        title={t('title')}
+        description={t('description')}
         action={
           <Button onClick={() => router.push('/coupons/new')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo Cupón
+            {t('newButton')}
           </Button>
         }
       />
@@ -142,13 +145,13 @@ export default function CouponsPage() {
           <div className="grid gap-4 md:grid-cols-1 lg:w-1/3">
             <Select value={scopeFilter || 'all'} onValueChange={(value) => setScopeFilter(value === 'all' ? '' : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos los alcances" />
+                <SelectValue placeholder={t('allScopes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los alcances</SelectItem>
-                <SelectItem value="GLOBAL">Global</SelectItem>
-                <SelectItem value="PRODUCT">Producto</SelectItem>
-                <SelectItem value="CATEGORY">Categoría</SelectItem>
+                <SelectItem value="all">{t('allScopes')}</SelectItem>
+                <SelectItem value="GLOBAL">{t('scopeGlobal')}</SelectItem>
+                <SelectItem value="PRODUCT">{t('scopeProduct')}</SelectItem>
+                <SelectItem value="CATEGORY">{t('scopeCategory')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -166,22 +169,22 @@ export default function CouponsPage() {
             </div>
           ) : coupons.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron cupones</p>
+              <p className="text-gray-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Alcance</TableHead>
-                    <TableHead>Auto-aplicar</TableHead>
-                    <TableHead>Válido Desde</TableHead>
-                    <TableHead>Válido Hasta</TableHead>
-                    <TableHead>Uso</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t('colCode')}</TableHead>
+                    <TableHead>{t('colType')}</TableHead>
+                    <TableHead>{t('colScope')}</TableHead>
+                    <TableHead>{t('colAutoApply')}</TableHead>
+                    <TableHead>{t('colValidFrom')}</TableHead>
+                    <TableHead>{t('colValidUntil')}</TableHead>
+                    <TableHead>{t('colUsage')}</TableHead>
+                    <TableHead>{t('colStatus')}</TableHead>
+                    <TableHead className="text-right">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -213,7 +216,7 @@ export default function CouponsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={isActive(coupon) ? 'default' : 'secondary'}>
-                          {isActive(coupon) ? 'Activo' : 'Inactivo'}
+                          {isActive(coupon) ? t('statusActive') : t('statusInactive')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -245,7 +248,7 @@ export default function CouponsPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
                 <div className="text-sm text-gray-500">
-                  Página {page} de {totalPages}
+                  {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -254,7 +257,7 @@ export default function CouponsPage() {
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
                   >
-                    Anterior
+                    {tc('previous')}
                   </Button>
                   <Button
                     variant="outline"
@@ -262,7 +265,7 @@ export default function CouponsPage() {
                     onClick={() => setPage(page + 1)}
                     disabled={page === totalPages}
                   >
-                    Siguiente
+                    {tc('next')}
                   </Button>
                 </div>
               </div>
@@ -275,14 +278,14 @@ export default function CouponsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{tc('confirmDeleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. El cupón será eliminado permanentemente.
+              {t('deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{tc('delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

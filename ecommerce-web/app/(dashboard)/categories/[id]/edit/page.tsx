@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { CategoryForm } from '@/components/categories/category-form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 
 export default function EditCategoryPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const t = useTranslations('categories');
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +27,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
       const response = await categoriesApi.getOne(params.id);
       setCategory(response.data);
     } catch (error) {
-      toast.error('Error al cargar categoría');
+      toast.error(t('edit.loadError'));
       router.push('/categories');
     } finally {
       setLoading(false);
@@ -36,10 +38,10 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     try {
       setIsSubmitting(true);
       await categoriesApi.update(params.id, data);
-      toast.success('Categoría actualizada exitosamente');
+      toast.success(t('edit.updateSuccess'));
       router.push('/categories');
     } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar categoría');
+      toast.error(error.message || t('edit.updateError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -49,8 +51,8 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     return (
       <div>
         <PageHeader
-          title="Editar Categoría"
-          description="Modifica la información de la categoría"
+          title={t('edit.title')}
+          description={t('edit.description')}
         />
         <div className="space-y-6">
           <Skeleton className="h-64" />
@@ -66,8 +68,8 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   return (
     <div>
       <PageHeader
-        title="Editar Categoría"
-        description="Modifica la información de la categoría"
+        title={t('edit.title')}
+        description={t('edit.description')}
       />
 
       <CategoryForm category={category} onSubmit={handleSubmit} isLoading={isSubmitting} />

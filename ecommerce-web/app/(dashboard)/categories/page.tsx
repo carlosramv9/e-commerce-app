@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +25,8 @@ import {
 
 export default function CategoriesPage() {
   const router = useRouter();
+  const t = useTranslations('categories');
+  const tc = useTranslations('common');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -40,7 +43,7 @@ export default function CategoriesPage() {
       const response = await categoriesApi.getAll();
       setCategories(response.data);
     } catch (error) {
-      toast.error('Error al cargar categorías');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
@@ -51,10 +54,10 @@ export default function CategoriesPage() {
 
     try {
       await categoriesApi.delete(categoryToDelete);
-      toast.success('Categoría eliminada exitosamente');
+      toast.success(t('deleteSuccess'));
       loadCategories();
     } catch (error) {
-      toast.error('Error al eliminar categoría');
+      toast.error(t('deleteError'));
     } finally {
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
@@ -73,8 +76,8 @@ export default function CategoriesPage() {
 
   const getStatusBadge = (status: CategoryStatus) => {
     const variants: Record<CategoryStatus, { label: string; className: string }> = {
-      ACTIVE: { label: 'Activa', className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: 'Inactiva', className: 'bg-gray-100 text-gray-800' },
+      ACTIVE: { label: t('statusActive'), className: 'bg-green-100 text-green-800' },
+      INACTIVE: { label: t('statusInactive'), className: 'bg-gray-100 text-gray-800' },
     };
 
     const variant = variants[status];
@@ -120,7 +123,7 @@ export default function CategoriesPage() {
 
             <div className="flex items-center gap-2">
               {getStatusBadge(category.status)}
-              <span className="text-sm text-gray-500">Orden: {category.sortOrder}</span>
+              <span className="text-sm text-gray-500">{t('order')}: {category.sortOrder}</span>
             </div>
           </div>
 
@@ -159,12 +162,12 @@ export default function CategoriesPage() {
   return (
     <div>
       <PageHeader
-        title="Categorías"
-        description="Gestiona las categorías de productos"
+        title={t('title')}
+        description={t('description')}
         action={
           <Button onClick={() => router.push('/categories/new')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nueva Categoría
+            {t('newButton')}
           </Button>
         }
       />
@@ -179,7 +182,7 @@ export default function CategoriesPage() {
             </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No hay categorías registradas</p>
+              <p className="text-gray-500">{t('noResults')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -193,15 +196,14 @@ export default function CategoriesPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{tc('confirmDeleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. La categoría será eliminada permanentemente.
-              Los productos asociados quedarán sin categoría.
+              {t('deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{tc('delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

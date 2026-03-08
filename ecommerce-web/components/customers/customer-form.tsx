@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,26 +27,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Customer } from '@/lib/types';
 
-const customerSchema = z.object({
-  firstName: z
-    .string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres'),
-  lastName: z
-    .string()
-    .min(2, 'Mínimo 2 caracteres')
-    .max(50, 'Máximo 50 caracteres'),
-  email: z.string().email('Email inválido'),
-  phone: z
-    .string()
-    .max(20, 'Máximo 20 caracteres')
-    .optional()
-    .or(z.literal('')),
-  type: z.enum(['NEW', 'REGULAR', 'VIP', 'WHOLESALE']),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'BLOCKED']),
-});
-
-type CustomerFormValues = z.infer<typeof customerSchema>;
+type CustomerFormValues = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  type: 'NEW' | 'REGULAR' | 'VIP' | 'WHOLESALE';
+  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+};
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -53,6 +43,31 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProps) {
+  const t = useTranslations('customers');
+
+  const customerSchema = useMemo(
+    () =>
+      z.object({
+        firstName: z
+          .string()
+          .min(2, t('form.errorMinChars'))
+          .max(50, t('form.errorMaxChars50')),
+        lastName: z
+          .string()
+          .min(2, t('form.errorMinChars'))
+          .max(50, t('form.errorMaxChars50')),
+        email: z.string().email(t('form.errorEmail')),
+        phone: z
+          .string()
+          .max(20, t('form.errorMaxChars20'))
+          .optional()
+          .or(z.literal('')),
+        type: z.enum(['NEW', 'REGULAR', 'VIP', 'WHOLESALE']),
+        status: z.enum(['ACTIVE', 'INACTIVE', 'BLOCKED']),
+      }),
+    [t]
+  );
+
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: {
@@ -83,7 +98,7 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
         <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
           <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Información personal
+              {t('form.personalInfo')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
@@ -94,10 +109,10 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
                     <FormLabel className="text-foreground font-medium text-sm">
-                      Nombre *
+                      {t('form.firstName')} *
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Juan" className="h-10" {...field} />
+                      <Input placeholder={t('form.firstNamePlaceholder')} className="h-10" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -109,10 +124,10 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
                     <FormLabel className="text-foreground font-medium text-sm">
-                      Apellido *
+                      {t('form.lastName')} *
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Pérez" className="h-10" {...field} />
+                      <Input placeholder={t('form.lastNamePlaceholder')} className="h-10" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -126,18 +141,18 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
                   <FormLabel className="text-foreground font-medium text-sm">
-                    Email *
+                    {t('form.email')} *
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="juan.perez@ejemplo.com"
+                      placeholder={t('form.emailPlaceholder')}
                       className="h-10"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription className="text-xs text-muted-foreground">
-                    Dirección de correo electrónico única
+                    {t('form.emailDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -150,18 +165,18 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
                   <FormLabel className="text-foreground font-medium text-sm">
-                    Teléfono
+                    {t('form.phone')}
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
-                      placeholder="+52 55 1234 5678"
+                      placeholder={t('form.phonePlaceholder')}
                       className="h-10"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription className="text-xs text-muted-foreground">
-                    Número de contacto (opcional)
+                    {t('form.phoneDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -174,7 +189,7 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
         <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
           <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
             <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Clasificación
+              {t('form.classification')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-5">
@@ -185,23 +200,23 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
                     <FormLabel className="text-foreground font-medium text-sm">
-                      Tipo de cliente *
+                      {t('form.clientType')} *
                     </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Selecciona un tipo" />
+                          <SelectValue placeholder={t('form.clientTypePlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="NEW">Nuevo</SelectItem>
-                        <SelectItem value="REGULAR">Regular</SelectItem>
-                        <SelectItem value="VIP">VIP</SelectItem>
-                        <SelectItem value="WHOLESALE">Mayorista</SelectItem>
+                        <SelectItem value="NEW">{t('form.typeNew')}</SelectItem>
+                        <SelectItem value="REGULAR">{t('form.typeRegular')}</SelectItem>
+                        <SelectItem value="VIP">{t('form.typeVip')}</SelectItem>
+                        <SelectItem value="WHOLESALE">{t('form.typeWholesale')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Categoría para descuentos y promociones
+                      {t('form.clientTypeDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -214,22 +229,22 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
                 render={({ field }) => (
                   <FormItem className="space-y-1.5">
                     <FormLabel className="text-foreground font-medium text-sm">
-                      Estado *
+                      {t('form.status')} *
                     </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Selecciona un estado" />
+                          <SelectValue placeholder={t('form.statusPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ACTIVE">Activo</SelectItem>
-                        <SelectItem value="INACTIVE">Inactivo</SelectItem>
-                        <SelectItem value="BLOCKED">Bloqueado</SelectItem>
+                        <SelectItem value="ACTIVE">{t('form.statusActive')}</SelectItem>
+                        <SelectItem value="INACTIVE">{t('form.statusInactive')}</SelectItem>
+                        <SelectItem value="BLOCKED">{t('form.statusBlocked')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription className="text-xs text-muted-foreground">
-                      Controla el acceso del cliente
+                      {t('form.statusDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -247,7 +262,7 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
             className="min-w-[180px] h-11 font-medium"
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {customer ? 'Actualizar cliente' : 'Crear cliente'}
+            {customer ? t('form.submitUpdate') : t('form.submitCreate')}
           </Button>
         </div>
       </form>

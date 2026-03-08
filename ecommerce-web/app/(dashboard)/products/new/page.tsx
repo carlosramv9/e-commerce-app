@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProductForm } from '@/components/products/product-form';
 import { productsApi } from '@/lib/api/products';
@@ -9,16 +10,18 @@ import { toast } from 'sonner';
 
 export default function NewProductPage() {
   const router = useRouter();
+  const t = useTranslations('products');
+  const tc = useTranslations('common');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (data: any) => {
     try {
       setIsLoading(true);
       await productsApi.create(data);
-      toast.success('Producto creado exitosamente');
+      toast.success(t('new.createSuccess'));
       router.push('/products');
     } catch (error: any) {
-      toast.error(error.message || 'Error al crear producto');
+      toast.error(error.message || t('new.createError'));
     } finally {
       setIsLoading(false);
     }
@@ -27,8 +30,8 @@ export default function NewProductPage() {
   return (
     <div>
       <PageHeader
-        title="Nuevo Producto"
-        description="Crea un nuevo producto en el catálogo"
+        title={t('new.title')}
+        description={t('new.description')}
       />
 
       <ProductForm onSubmit={handleSubmit} isLoading={isLoading} />

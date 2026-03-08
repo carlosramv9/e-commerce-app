@@ -287,8 +287,8 @@ enum PaymentStatus {
 model Order {
   id            String        @id @default(uuid())
   orderNumber   String        @unique
-  customerId    String
-  addressId     String
+  customerId    String?       // null = venta general / mostrador
+  addressId     String?       // null cuando no hay cliente o venta en tienda
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   subtotal      Decimal       @db.Decimal(10, 2)
@@ -308,8 +308,8 @@ model Order {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  customer        Customer        @relation(fields: [customerId], references: [id])
-  shippingAddress CustomerAddress @relation(fields: [addressId], references: [id])
+  customer        Customer?        @relation(fields: [customerId], references: [id])
+  shippingAddress CustomerAddress? @relation(fields: [addressId], references: [id])
   coupon          Coupon?         @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items           OrderItem[]
   payment         Payment?

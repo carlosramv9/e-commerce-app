@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,16 +30,14 @@ import { categoriesApi } from '@/lib/api/categories';
 import { Category } from '@/lib/types';
 import { toast } from 'sonner';
 
-const categorySchema = z.object({
-  name: z.string().min(1, 'Nombre es requerido'),
-  slug: z.string().min(1, 'Slug es requerido'),
-  description: z.string().optional(),
-  parentId: z.string().optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE']),
-  sortOrder: z.number().int().min(0),
-});
-
-type CategoryFormValues = z.infer<typeof categorySchema>;
+type CategoryFormValues = {
+  name: string;
+  slug: string;
+  description?: string;
+  parentId?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  sortOrder: number;
+};
 
 interface CategoryFormProps {
   category?: Category;
@@ -47,8 +46,22 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProps) {
+  const t = useTranslations('categories');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const categorySchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t('form.nameRequired')),
+        slug: z.string().min(1, t('form.slugRequired')),
+        description: z.string().optional(),
+        parentId: z.string().optional(),
+        status: z.enum(['ACTIVE', 'INACTIVE']),
+        sortOrder: z.number().int().min(0),
+      }),
+    [t]
+  );
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
@@ -74,7 +87,7 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
       const filtered = response.data.filter((cat) => cat.id !== category?.id);
       setCategories(filtered);
     } catch (error) {
-      toast.error('Error al cargar categorías');
+      toast.error(t('form.loadError'));
     } finally {
       setLoadingCategories(false);
     }
@@ -120,7 +133,7 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Información de Categoría</CardTitle>
+            <CardTitle>{t('form.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -129,10 +142,10 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre *</FormLabel>
+                    <FormLabel>{t('form.name')} *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Nombre de la categoría"
+                        placeholder={t('form.namePlaceholder')}
                         {...field}
                         onChange={(e) => handleNameChange(e.target.value)}
                       />
@@ -147,11 +160,11 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Slug *</FormLabel>
+                    <FormLabel>{t('form.slug')} *</FormLabel>
                     <FormControl>
-                      <Input placeholder="nombre-categoria" {...field} />
+                      <Input placeholder={t('form.slugPlaceholder')} {...field} />
                     </FormControl>
-                    <FormDescription>URL amigable (se genera automáticamente)</FormDescription>
+                    <FormDescription>{t('form.slugDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -163,10 +176,10 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción</FormLabel>
+                  <FormLabel>{t('form.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Descripción de la categoría"
+                      placeholder={t('form.descriptionPlaceholder')}
                       className="min-h-24"
                       {...field}
                     />
@@ -182,7 +195,7 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                 name="parentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Categoría Padre</FormLabel>
+                    <FormLabel>{t('form.parent')}</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)}
                       defaultValue={field.value || 'none'}
@@ -190,15 +203,15 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sin categoría padre" />
+                          <SelectValue placeholder={t('form.parentNone')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">Sin categoría padre</SelectItem>
+                        <SelectItem value="none">{t('form.parentNone')}</SelectItem>
                         {renderCategoryOptions(categories)}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Opcional: categoría de nivel superior</FormDescription>
+                    <FormDescription>{t('form.parentDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -209,16 +222,16 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado *</FormLabel>
+                    <FormLabel>{t('form.status')} *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un estado" />
+                          <SelectValue placeholder={t('form.statusPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ACTIVE">Activa</SelectItem>
-                        <SelectItem value="INACTIVE">Inactiva</SelectItem>
+                        <SelectItem value="ACTIVE">{t('form.statusActive')}</SelectItem>
+                        <SelectItem value="INACTIVE">{t('form.statusInactive')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -231,7 +244,7 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                 name="sortOrder"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Orden *</FormLabel>
+                    <FormLabel>{t('form.order')} *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -240,7 +253,7 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                         onChange={(e) => field.onChange(parseInt(e.target.value))}
                       />
                     </FormControl>
-                    <FormDescription>Orden de visualización</FormDescription>
+                    <FormDescription>{t('form.orderDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -252,7 +265,7 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {category ? 'Actualizar Categoría' : 'Crear Categoría'}
+            {category ? t('form.submitUpdate') : t('form.submitCreate')}
           </Button>
         </div>
       </form>
