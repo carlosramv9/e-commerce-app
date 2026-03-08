@@ -322,28 +322,38 @@ export default function OrderDetailsPage() {
             <CardHeader>
               <CardTitle>{t('detail.paymentInfo')}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {order.payment ? (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('detail.paymentMethod')}:</span>
-                    <span className="font-medium">{order.payment.paymentMethod}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('detail.paymentStatus')}:</span>
-                    <span className="font-medium">{order.payment.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('detail.paymentAmount')}:</span>
-                    <span className="font-medium">{formatCurrency(order.payment.amount)}</span>
-                  </div>
-                  {order.payment.transactionId && (
+            <CardContent className="space-y-3 text-sm">
+              {order.payments && order.payments.length > 0 ? (
+                order.payments.map((payment, index) => (
+                  <div
+                    key={payment.id}
+                    className={`space-y-2 ${order.payments!.length > 1 ? 'pb-3 border-b border-gray-100 last:border-0 last:pb-0' : ''}`}
+                  >
+                    {order.payments!.length > 1 && (
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        {t('detail.paymentMethod')} {index + 1}
+                      </p>
+                    )}
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('detail.transactionId')}:</span>
-                      <span className="font-mono text-xs">{order.payment.transactionId}</span>
+                      <span className="text-gray-600">{t('detail.paymentMethod')}:</span>
+                      <span className="font-medium">{payment.paymentMethod}</span>
                     </div>
-                  )}
-                </>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{t('detail.paymentStatus')}:</span>
+                      <span className="font-medium">{payment.status}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{t('detail.paymentAmount')}:</span>
+                      <span className="font-medium">{formatCurrency(payment.amount)}</span>
+                    </div>
+                    {payment.transactionId && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{t('detail.transactionId')}:</span>
+                        <span className="font-mono text-xs">{payment.transactionId}</span>
+                      </div>
+                    )}
+                  </div>
+                ))
               ) : (
                 <p className="text-gray-500 text-sm">{t('detail.noPaymentInfo')}</p>
               )}

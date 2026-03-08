@@ -200,7 +200,7 @@ export interface Order {
   updatedAt: string;
   customer?: Customer;
   items?: OrderItem[];
-  payment?: Payment | null;
+  payments?: Payment[];
   shippingAddress?: CustomerAddress | null;
 }
 
@@ -311,6 +311,7 @@ export interface CreateOrderDto {
   }[];
   couponCode?: string;
   paymentMethod: string;
+  payments?: Array<{ method: string; amount: number }>;
   shippingCost?: number;
   notes?: string;
   paymentStatus?: PaymentStatus;

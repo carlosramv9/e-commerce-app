@@ -312,7 +312,7 @@ model Order {
   shippingAddress CustomerAddress? @relation(fields: [addressId], references: [id])
   coupon          Coupon?         @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items           OrderItem[]
-  payment         Payment?
+  payments        Payment[]
   createdBy       User?           @relation("OrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy       User?           @relation("OrderUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
 
@@ -339,8 +339,8 @@ model OrderItem {
 // ============= Payments =============
 model Payment {
   id              String        @id @default(uuid())
-  orderId         String        @unique
-  paymentMethod   String // "cash", "card", "transfer", etc.
+  orderId         String
+  paymentMethod   String // "CASH", "CARD", "TRANSFER", etc.
   transactionId   String?
   amount          Decimal       @db.Decimal(10, 2)
   status          PaymentStatus @default(PENDING)

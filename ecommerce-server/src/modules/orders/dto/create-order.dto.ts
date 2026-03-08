@@ -13,6 +13,20 @@ import {
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class CreatePaymentSplitDto {
+  @ApiProperty({ example: 'CASH', description: 'Método de pago: CASH, CARD, TRANSFER' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  method: string;
+
+  @ApiProperty({ example: 150.0, minimum: 0 })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  amount: number;
+}
+
 export class CreateOrderItemDto {
   @ApiProperty()
   @IsUUID()
@@ -44,11 +58,21 @@ export class CreateOrderDto {
   @Type(() => CreateOrderItemDto)
   items: CreateOrderItemDto[];
 
-  @ApiProperty({ example: 'CASH', description: 'Método de pago: CASH, CARD, etc.' })
+  @ApiProperty({ example: 'CASH', description: 'Método de pago principal: CASH, CARD, TRANSFER' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
   paymentMethod: string;
+
+  @ApiPropertyOptional({
+    type: [CreatePaymentSplitDto],
+    description: 'Pago dividido en múltiples métodos. Si se provee, se ignora paymentMethod para los registros de pago.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePaymentSplitDto)
+  payments?: CreatePaymentSplitDto[];
 
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()

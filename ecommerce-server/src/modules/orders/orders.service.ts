@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { AuditContextService } from '../../common/context/audit-context.service';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { QueryOrdersDto } from './dto/query-orders.dto';
 import { Order, OrderStatus, Coupon, PaymentStatus } from '@prisma/client';
@@ -10,6 +11,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
+    private auditContext: AuditContextService,
     private couponsService: CouponsService,
   ) {}
 
@@ -84,6 +86,8 @@ export class OrdersService {
     const total = Math.max(0, subtotal - discountAmount + shippingCost + tax);
     const orderNumber = `V-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
+    const createdById = this.auditContext.getUserId() ?? null;
+
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
@@ -100,6 +104,7 @@ export class OrdersService {
           ...(couponCode != null && { couponCode }),
           status: (dto.status ?? 'PENDING') as any,
           paymentStatus: (dto.paymentStatus ?? PaymentStatus.PENDING) as any,
+          ...(createdById != null && { createdById }),
         },
       });
 
@@ -120,14 +125,29 @@ export class OrdersService {
         });
       }
 
-      await tx.payment.create({
-        data: {
-          orderId: newOrder.id,
-          paymentMethod: dto.paymentMethod,
-          amount: total,
-          status: (dto.paymentStatus ?? 'PENDING') as any,
-        },
-      });
+      const paymentStatus = (dto.paymentStatus ?? 'PENDING') as any;
+      if (dto.payments && dto.payments.length > 0) {
+        // Split payment: one Payment row per method
+        for (const split of dto.payments) {
+          await tx.payment.create({
+            data: {
+              orderId: newOrder.id,
+              paymentMethod: split.method,
+              amount: split.amount,
+              status: paymentStatus,
+            },
+          });
+        }
+      } else {
+        await tx.payment.create({
+          data: {
+            orderId: newOrder.id,
+            paymentMethod: dto.paymentMethod,
+            amount: total,
+            status: paymentStatus,
+          },
+        });
+      }
 
       if (couponId) {
         await this.couponsService.incrementUsage(couponId);
@@ -149,7 +169,7 @@ export class OrdersService {
           customer: true,
           shippingAddress: true,
           items: { include: { product: true } },
-          payment: true,
+          payments: true,
         },
       });
     });
@@ -175,7 +195,7 @@ export class OrdersService {
           items: {
             include: { product: true },
           },
-          payment: true,
+          payments: true,
         },
       }),
       this.prisma.order.count({ where: Object.keys(where).length > 0 ? where : undefined }),
@@ -201,7 +221,7 @@ export class OrdersService {
         items: {
           include: { product: true },
         },
-        payment: true,
+        payments: true,
       },
     });
 

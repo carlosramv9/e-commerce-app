@@ -1,7 +1,9 @@
+'use client';
+
 import { AppliedCoupon } from '@/lib/interfaces/appliedCoupon';
 import { CartItem } from '@/lib/interfaces/cart-item';
 import { Customer } from '@/lib/types';
-import React, { useState } from 'react'
+import React, { useState, useMemo, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import {
     Dialog,
@@ -10,29 +12,31 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { currencyFormatter } from '@/lib/utils';
-import { ArrowLeftRight, Banknote, CreditCard, Loader2, Tag } from 'lucide-react';
+import { ArrowLeftRight, Banknote, CreditCard, Loader2, Plus, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+export type PaymentSplit = {
+    method: string;
+    amount: number;
+};
+
 const PAYMENT_METHODS = [
-    {
-        id: 'CASH',
-        label: 'Efectivo',
-        icon: Banknote,
-        description: 'Pago en efectivo',
-    },
-    {
-        id: 'CARD',
-        label: 'Tarjeta',
-        icon: CreditCard,
-        description: 'Crédito o débito',
-    },
-    {
-        id: 'TRANSFER',
-        label: 'Transferencia',
-        icon: ArrowLeftRight,
-        description: 'Transferencia bancaria',
-    },
+    { id: 'CASH', label: 'Efectivo', icon: Banknote },
+    { id: 'CARD', label: 'Tarjeta', icon: CreditCard },
+    { id: 'TRANSFER', label: 'Transferencia', icon: ArrowLeftRight },
 ] as const;
+
+type SplitRow = {
+    id: string;
+    method: string;
+    amount: string;
+};
+
+const MAX_SPLITS = 3;
+
+function newRow(method: string, amount: number): SplitRow {
+    return { id: Date.now().toString() + Math.random(), method, amount: amount.toFixed(2) };
+}
 
 const CheckoutModal = ({
     open,
@@ -54,10 +58,62 @@ const CheckoutModal = ({
     subtotal: number;
     discount: number;
     total: number;
-    onConfirm: (paymentMethod: string) => Promise<void>;
+    onConfirm: (payments: PaymentSplit[]) => Promise<void>;
     confirming: boolean;
 }) => {
-    const [paymentMethod, setPaymentMethod] = useState('CASH');
+    const [splits, setSplits] = useState<SplitRow[]>([newRow('CASH', total)]);
+
+    // Reset when modal opens (defer setState to avoid synchronous update in effect)
+    useEffect(() => {
+        if (open) {
+            const t = setTimeout(() => setSplits([newRow('CASH', total)]), 0);
+            return () => clearTimeout(t);
+        }
+    }, [open, total]);
+
+    const totalPaid = useMemo(
+        () => splits.reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0),
+        [splits],
+    );
+
+    const remaining = Math.round((total - totalPaid) * 100) / 100;
+    const isValid = Math.abs(remaining) < 0.01;
+    const isMultiple = splits.length > 1;
+
+    const addSplit = () => {
+        if (splits.length >= MAX_SPLITS) return;
+        const newCount = splits.length + 1;
+        const perAmount = Math.floor((total / newCount) * 100) / 100;
+        const firstAmount = Math.round((total - perAmount * (newCount - 1)) * 100) / 100;
+        setSplits((prev) => {
+            // Pick a method not already used, default CARD → TRANSFER → CASH
+            const usedMethods = prev.map((s) => s.method);
+            const nextMethod =
+                PAYMENT_METHODS.find((m) => !usedMethods.includes(m.id))?.id ?? 'CARD';
+            const withNew = [...prev, { id: newRow(nextMethod, 0).id, method: nextMethod, amount: '0' }];
+            return withNew.map((s, i) => ({
+                ...s,
+                amount: i === 0 ? firstAmount.toFixed(2) : perAmount.toFixed(2),
+            }));
+        });
+    };
+
+    const removeSplit = (id: string) => {
+        setSplits((prev) => prev.filter((s) => s.id !== id));
+    };
+
+    const updateMethod = (id: string, method: string) => {
+        setSplits((prev) => prev.map((s) => (s.id === id ? { ...s, method } : s)));
+    };
+
+    const updateAmount = (id: string, value: string) => {
+        setSplits((prev) => prev.map((s) => (s.id === id ? { ...s, amount: value } : s)));
+    };
+
+    const handleConfirm = async () => {
+        if (!isValid || confirming) return;
+        await onConfirm(splits.map((s) => ({ method: s.method, amount: parseFloat(s.amount) || 0 })));
+    };
 
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -128,33 +184,113 @@ const CheckoutModal = ({
                         </div>
                     </div>
 
-                    {/* Payment method */}
+                    {/* Payment section */}
                     <div className="px-5 py-4">
-                        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3">
-                            Método de Pago
-                        </p>
-                        <div className="grid grid-cols-3 gap-2.5">
-                            {PAYMENT_METHODS.map((method) => {
-                                const Icon = method.icon;
-                                const isSelected = paymentMethod === method.id;
-                                return (
-                                    <button
-                                        key={method.id}
-                                        onClick={() => setPaymentMethod(method.id)}
-                                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${isSelected
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50'
-                                            }`}
-                                    >
-                                        <Icon className={`h-5 w-5 ${isSelected ? 'text-blue-600' : 'text-neutral-500'}`} />
-                                        <span className="text-xs font-semibold">{method.label}</span>
-                                        <span className={`text-[10px] leading-tight text-center ${isSelected ? 'text-blue-500' : 'text-neutral-400'}`}>
-                                            {method.description}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                                {isMultiple ? 'Pago Dividido' : 'Método de Pago'}
+                            </p>
+                            {splits.length < MAX_SPLITS && (
+                                <button
+                                    onClick={addSplit}
+                                    className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Dividir pago
+                                </button>
+                            )}
                         </div>
+
+                        <div className="space-y-3">
+                            {splits.map((split, index) => (
+                                <div
+                                    key={split.id}
+                                    className="rounded-xl border border-neutral-200 p-3 bg-neutral-50/60"
+                                >
+                                    {/* Split header (only in multi-split mode) */}
+                                    {isMultiple && (
+                                        <div className="flex items-center justify-between mb-2.5">
+                                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                                                Pago {index + 1}
+                                            </span>
+                                            {index > 0 && (
+                                                <button
+                                                    onClick={() => removeSplit(split.id)}
+                                                    className="text-neutral-300 hover:text-red-400 transition-colors"
+                                                >
+                                                    <X className="h-3.5 w-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Method pills */}
+                                    <div className="flex gap-1.5 flex-wrap mb-2.5">
+                                        {PAYMENT_METHODS.map((m) => {
+                                            const Icon = m.icon;
+                                            const selected = split.method === m.id;
+                                            return (
+                                                <button
+                                                    key={m.id}
+                                                    onClick={() => updateMethod(split.id, m.id)}
+                                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                                                        selected
+                                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                            : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300'
+                                                    }`}
+                                                >
+                                                    <Icon className="h-3.5 w-3.5" />
+                                                    {m.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Amount input (only in multi-split mode) */}
+                                    {isMultiple && (
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none select-none">
+                                                $
+                                            </span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={split.amount}
+                                                onChange={(e) => updateAmount(split.id, e.target.value)}
+                                                className="w-full pl-6 pr-3 py-2 border border-neutral-200 rounded-lg text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Remaining indicator */}
+                        {isMultiple && (
+                            <div
+                                className={`mt-3 flex items-center justify-between text-sm px-1 transition-colors ${
+                                    remaining > 0.01
+                                        ? 'text-amber-600'
+                                        : remaining < -0.01
+                                        ? 'text-red-500'
+                                        : 'text-emerald-600'
+                                }`}
+                            >
+                                <span className="font-medium">
+                                    {remaining > 0.01
+                                        ? 'Restante por asignar'
+                                        : remaining < -0.01
+                                        ? 'Excede el total'
+                                        : '✓ Monto cubierto'}
+                                </span>
+                                {Math.abs(remaining) >= 0.01 && (
+                                    <span className="font-mono font-semibold tabular-nums">
+                                        {currencyFormatter.format(Math.abs(remaining))}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -170,8 +306,8 @@ const CheckoutModal = ({
                     </Button>
                     <Button
                         className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 font-semibold"
-                        onClick={() => onConfirm(paymentMethod)}
-                        disabled={confirming}
+                        onClick={handleConfirm}
+                        disabled={confirming || !isValid}
                     >
                         {confirming ? (
                             <>
@@ -186,6 +322,6 @@ const CheckoutModal = ({
             </DialogContent>
         </Dialog>
     );
-}
+};
 
-export default CheckoutModal
+export default CheckoutModal;

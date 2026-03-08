@@ -261,7 +261,7 @@ async function main() {
     order = existingOrder;
   }
 
-  const existingPayment = await prisma.payment.findUnique({
+  const existingPayment = await prisma.payment.findFirst({
     where: { orderId: order.id },
   });
 
@@ -269,7 +269,7 @@ async function main() {
     await prisma.payment.create({
       data: {
         orderId: order.id,
-        paymentMethod: 'credit_card',
+        paymentMethod: 'CARD',
         transactionId: 'txn_' + Date.now(),
         amount: 1089.99,
         status: 'PAID',

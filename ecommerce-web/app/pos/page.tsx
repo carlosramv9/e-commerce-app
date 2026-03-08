@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 import { CartItem } from '@/lib/interfaces/cart-item';
 import { AppliedCoupon } from '@/lib/interfaces/appliedCoupon';
 import CheckoutPanel from './(components)/CheckoutPanel';
-import CheckoutModal from './(components)/CheckoutModal';
+import CheckoutModal, { PaymentSplit } from './(components)/CheckoutModal';
 import CouponModal from './(components)/CouponModal';
 import ProductCard from './(components)/ProductCard';
 import CustomerModal from './(components)/CustomerModal';
@@ -191,8 +191,15 @@ export default function POSPage() {
   }, []);
 
   // Order creation (cliente y cupones opcionales — venta rápida al público general)
-  const handleCreateOrder = useCallback(async (paymentMethod: string) => {
+  const handleCreateOrder = useCallback(async (payments: PaymentSplit[]) => {
     if (cart.length === 0) return;
+
+    // Primary method = the one with the highest amount
+    const primaryMethod = payments.reduce((a, b) => (b.amount > a.amount ? b : a)).method;
+    // Human-readable label for the success modal
+    const methodLabel = payments.length > 1
+      ? payments.map((p) => p.method).join(' + ')
+      : primaryMethod;
 
     try {
       setCreatingOrder(true);
@@ -202,7 +209,8 @@ export default function POSPage() {
           quantity: item.quantity,
           price: item.product.price,
         })),
-        paymentMethod,
+        paymentMethod: primaryMethod,
+        ...(payments.length > 1 && { payments: payments.map((p) => ({ method: p.method, amount: p.amount })) }),
         paymentStatus: PaymentStatus.PAID,
         shippingCost: 0,
         notes: '',
@@ -213,7 +221,6 @@ export default function POSPage() {
 
       const response = await ordersApi.create(orderData);
 
-      // Close checkout modal and reset cart before showing success
       setCheckoutModalOpen(false);
       setCart([]);
       setAppliedCoupons([]);
@@ -222,7 +229,7 @@ export default function POSPage() {
         orderId: response.data.id,
         orderNumber: response.data.orderNumber,
         total: response.data.total,
-        paymentMethod,
+        paymentMethod: methodLabel,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Error al registrar venta';
