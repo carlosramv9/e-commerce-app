@@ -30,12 +30,19 @@ type SplitRow = {
     id: string;
     method: string;
     amount: string;
+    /** Si true, el monto se calcula como (total - resto de splits) */
+    isRemaining?: boolean;
 };
 
 const MAX_SPLITS = 3;
 
-function newRow(method: string, amount: number): SplitRow {
-    return { id: Date.now().toString() + Math.random(), method, amount: amount.toFixed(2) };
+function newRow(method: string, amount: number, isRemaining = false): SplitRow {
+    return {
+        id: Date.now().toString() + Math.random(),
+        method,
+        amount: amount.toFixed(2),
+        ...(isRemaining && { isRemaining: true }),
+    };
 }
 
 const CheckoutModal = ({
@@ -71,13 +78,29 @@ const CheckoutModal = ({
         }
     }, [open, total]);
 
+    /** Monto efectivo de cada split (si isRemaining, se calcula después en totalPaid) */
+    const splitAmounts = useMemo(() => {
+        const fixedTotal = splits
+            .filter((s) => !s.isRemaining)
+            .reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0);
+        const remainingCount = splits.filter((s) => s.isRemaining).length;
+        const remainder = Math.round((total - fixedTotal) * 100) / 100;
+        const remainingPerSplit =
+            remainingCount > 0 ? Math.round((remainder / remainingCount) * 100) / 100 : 0;
+        return splits.map((s) =>
+            s.isRemaining ? remainingPerSplit : parseFloat(s.amount) || 0
+        );
+    }, [splits, total]);
+
     const totalPaid = useMemo(
-        () => splits.reduce((sum, s) => sum + (parseFloat(s.amount) || 0), 0),
-        [splits],
+        () => splitAmounts.reduce((sum, a) => sum + a, 0),
+        [splitAmounts],
     );
 
     const remaining = Math.round((total - totalPaid) * 100) / 100;
-    const isValid = Math.abs(remaining) < 0.01;
+    const hasNegativeSplit = splitAmounts.some((a) => a < -0.01);
+    const isValid =
+        Math.abs(remaining) < 0.01 && !hasNegativeSplit;
     const isMultiple = splits.length > 1;
 
     const addSplit = () => {
@@ -107,12 +130,31 @@ const CheckoutModal = ({
     };
 
     const updateAmount = (id: string, value: string) => {
-        setSplits((prev) => prev.map((s) => (s.id === id ? { ...s, amount: value } : s)));
+        setSplits((prev) =>
+            prev.map((s) => (s.id === id ? { ...s, amount: value, isRemaining: false } : s))
+        );
+    };
+
+    const toggleRemainingSplit = (id: string) => {
+        setSplits((prev) =>
+            prev.map((s) => {
+                if (s.id !== id) return s;
+                if (s.isRemaining) {
+                    return { ...s, isRemaining: false, amount: '0' };
+                }
+                return { ...s, isRemaining: true, amount: '0' };
+            })
+        );
     };
 
     const handleConfirm = async () => {
         if (!isValid || confirming) return;
-        await onConfirm(splits.map((s) => ({ method: s.method, amount: parseFloat(s.amount) || 0 })));
+        if (splitAmounts.some((a) => a < 0)) return;
+        const payload = splits.map((s, i) => ({
+            method: s.method,
+            amount: splitAmounts[i] ?? 0,
+        }));
+        await onConfirm(payload);
     };
 
     return (
@@ -224,7 +266,7 @@ const CheckoutModal = ({
                                         </div>
                                     )}
 
-                                    {/* Method pills */}
+                                    {/* Method pills + Resto aquí */}
                                     <div className="flex gap-1.5 flex-wrap mb-2.5">
                                         {PAYMENT_METHODS.map((m) => {
                                             const Icon = m.icon;
@@ -232,6 +274,7 @@ const CheckoutModal = ({
                                             return (
                                                 <button
                                                     key={m.id}
+                                                    type="button"
                                                     onClick={() => updateMethod(split.id, m.id)}
                                                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                         selected
@@ -244,22 +287,57 @@ const CheckoutModal = ({
                                                 </button>
                                             );
                                         })}
+                                        {isMultiple && (
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleRemainingSplit(split.id)}
+                                                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                                                    split.isRemaining
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                        : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
+                                                }`}
+                                            >
+                                                {split.isRemaining ? 'Quitar resto' : 'Resto aquí'}
+                                            </button>
+                                        )}
                                     </div>
 
-                                    {/* Amount input (only in multi-split mode) */}
+                                    {/* Amount: input o monto calculado (resto) */}
                                     {isMultiple && (
                                         <div className="relative">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none select-none">
                                                 $
                                             </span>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={split.amount}
-                                                onChange={(e) => updateAmount(split.id, e.target.value)}
-                                                className="w-full pl-6 pr-3 py-2 border border-neutral-200 rounded-lg text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            />
+                                            {split.isRemaining ? (
+                                                <div>
+                                                    <div
+                                                        className={`w-full pl-6 pr-3 py-2 border rounded-lg text-sm font-mono ${
+                                                            (splitAmounts[index] ?? 0) < -0.01
+                                                                ? 'border-red-300 bg-red-50/80 text-red-800'
+                                                                : 'border-emerald-200 bg-emerald-50/80 text-emerald-800'
+                                                        }`}
+                                                    >
+                                                        {(splitAmounts[index] ?? 0).toFixed(2)}
+                                                        <span className="ml-2 text-[10px] font-medium uppercase tracking-wide">
+                                                            {(splitAmounts[index] ?? 0) < -0.01 ? '(excede)' : '(resto)'}
+                                                        </span>
+                                                    </div>
+                                                    {(splitAmounts[index] ?? 0) < -0.01 && (
+                                                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                                                            El monto asignado supera el total a pagar
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={split.amount}
+                                                    onChange={(e) => updateAmount(split.id, e.target.value)}
+                                                    className="w-full pl-6 pr-3 py-2 border border-neutral-200 rounded-lg text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                />
+                                            )}
                                         </div>
                                     )}
                                 </div>

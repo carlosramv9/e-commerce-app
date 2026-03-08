@@ -44,7 +44,7 @@ const CheckoutPanel = ({
     canCheckout,
 }: CheckoutPanelProps) => {
     return (
-        <div className="w-full lg:w-[600px] xl:w-[640px] border-t lg:border-t-0 lg:border-l border-neutral-200 bg-white flex flex-col max-h-[50vh] lg:max-h-none">
+        <div className="w-full lg:w-[500px] xl:w-[500px] border-t lg:border-t-0 lg:border-l border-neutral-200 bg-white flex flex-col max-h-[50vh] lg:max-h-none">
             {/* Cart Header */}
             <div className="border-b border-neutral-200 px-4 md:px-5 py-3 bg-neutral-50 shrink-0">
                 <div className="flex items-center justify-between">

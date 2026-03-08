@@ -11,12 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Search,
-  LogOut,
-  Clock,
-  Loader2,
-} from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
 import { customersApi } from '@/lib/api/customers';
 import { ordersApi } from '@/lib/api/orders';
@@ -31,6 +26,11 @@ import CouponModal from './(components)/CouponModal';
 import ProductCard from './(components)/ProductCard';
 import CustomerModal from './(components)/CustomerModal';
 import SaleSuccessModal from './(components)/SaleSuccessModal';
+import POSSidebar, { POSSection } from './(components)/POSSidebar';
+import VentasSection from './(components)/VentasSection';
+import ClientesSection from './(components)/ClientesSection';
+import InventarioSection from './(components)/InventarioSection';
+import PromocionesSection from './(components)/PromocionesSection';
 
 // ─── Main POS Page ────────────────────────────────────────────────────────────
 export default function POSPage() {
@@ -60,6 +60,7 @@ export default function POSPage() {
 
   const [isPending, startTransition] = useTransition();
   const [creatingOrder, setCreatingOrder] = useState(false);
+  const [activeSection, setActiveSection] = useState<POSSection>('cobrar');
 
   // Clock
   useEffect(() => {
@@ -257,119 +258,118 @@ export default function POSPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[#fdfcfb] overflow-hidden">
-      {/* Top Bar */}
-      <div className="border-b border-neutral-200 bg-white px-4 md:px-6 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-base md:text-lg font-semibold text-neutral-900">Terminal POS</h1>
-            <p className="hidden md:block text-xs text-neutral-500 font-mono mt-0.5">
-              {currentTime.toLocaleString('es-MX', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              })}
-            </p>
-          </div>
-        </div>
+    <div className="h-screen flex overflow-hidden bg-[#fdfcfb]">
+      {/* POS Sidebar */}
+      <POSSidebar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        cartCount={totalItems}
+        onExit={() => router.push('/dashboard')}
+        currentTime={currentTime}
+      />
 
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="md:hidden flex items-center gap-1.5 text-neutral-600">
-            <Clock className="h-4 w-4" />
-            <span className="text-sm font-mono">
-              {currentTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
-          <div className="hidden sm:block text-right">
-            <p className="text-xs text-neutral-500">Items</p>
-            <p className="text-lg font-bold font-mono text-neutral-900">{totalItems}</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push('/dashboard')}
-            className="border-neutral-300 hover:bg-neutral-100"
-          >
-            <LogOut className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Salir</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Products Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Search & Filters */}
-          <div className="border-b border-neutral-200 bg-white px-4 md:px-6 py-3 md:py-4 shrink-0">
-            <div className="flex gap-2 md:gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <Input
-                  placeholder="Buscar producto..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 h-10 md:h-11 border-neutral-300 focus:border-blue-500 focus:ring-blue-500"
-                />
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* ── Cobrar (main POS) ── */}
+        {activeSection === 'cobrar' && (
+          <>
+            {/* Search & Filters */}
+            <div className="border-b border-neutral-200 bg-white px-4 md:px-6 py-3 md:py-4 shrink-0">
+              <div className="flex gap-2 md:gap-3">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  <Input
+                    placeholder="Buscar producto..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10 h-10 md:h-11 border-neutral-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <Select
+                  value={categoryFilter || 'all'}
+                  onValueChange={(value) => setCategoryFilter(value === 'all' ? '' : value)}
+                >
+                  <SelectTrigger className="w-32 md:w-48 h-10 md:h-11 border-neutral-300">
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Select
-                value={categoryFilter || 'all'}
-                onValueChange={(value) => setCategoryFilter(value === 'all' ? '' : value)}
-              >
-                <SelectTrigger className="w-32 md:w-48 h-10 md:h-11 border-neutral-300">
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
+            </div>
+
+            {/* Products + Checkout Panel */}
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
+                    />
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Products Grid */}
-          <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={addToCart}
-                />
-              ))}
-            </div>
-            {products.length === 0 && !isPending && (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-neutral-400 text-sm">No se encontraron productos</p>
+                </div>
+                {products.length === 0 && !isPending && (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-neutral-400 text-sm">No se encontraron productos</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Checkout Panel */}
-        <CheckoutPanel
-          totalItems={totalItems}
-          cart={cart}
-          updateQuantity={updateQuantity}
-          removeFromCart={removeFromCart}
-          setCustomerModalOpen={setCustomerModalOpen}
-          setCouponModalOpen={setCouponModalOpen}
-          setCheckoutModalOpen={setCheckoutModalOpen}
-          selectedCustomer={selectedCustomer as Customer | null}
-          appliedCoupons={appliedCoupons}
-          discount={discount}
-          subtotal={subtotal}
-          total={total}
-          canCheckout={canCheckout}
-        />
+              <CheckoutPanel
+                totalItems={totalItems}
+                cart={cart}
+                updateQuantity={updateQuantity}
+                removeFromCart={removeFromCart}
+                setCustomerModalOpen={setCustomerModalOpen}
+                setCouponModalOpen={setCouponModalOpen}
+                setCheckoutModalOpen={setCheckoutModalOpen}
+                selectedCustomer={selectedCustomer as Customer | null}
+                appliedCoupons={appliedCoupons}
+                discount={discount}
+                subtotal={subtotal}
+                total={total}
+                canCheckout={canCheckout}
+              />
+            </div>
+          </>
+        )}
+
+        {/* ── Mis Ventas ── */}
+        {activeSection === 'ventas' && <VentasSection />}
+
+        {/* ── Clientes ── */}
+        {activeSection === 'clientes' && (
+          <ClientesSection
+            customers={customers}
+            selectedCustomerId={selectedCustomerId}
+            onSelectCustomer={setSelectedCustomerId}
+            onNewCustomer={handleNewCustomer}
+            onSelectionDone={() => setActiveSection('cobrar')}
+          />
+        )}
+
+        {/* ── Inventario ── */}
+        {activeSection === 'inventario' && (
+          <InventarioSection products={products} />
+        )}
+
+        {/* ── Promociones ── */}
+        {activeSection === 'promociones' && (
+          <PromocionesSection
+            onApply={() => {
+              setActiveSection('cobrar');
+              setCouponModalOpen(true);
+            }}
+          />
+        )}
       </div>
 
       {/* Modals */}

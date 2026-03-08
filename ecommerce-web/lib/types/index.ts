@@ -193,6 +193,7 @@ export interface Order {
   shippingCost: number;
   total: number;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
   couponCode: string | null;
   couponId: string | null;
   notes: string | null;
