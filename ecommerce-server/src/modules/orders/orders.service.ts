@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
-import { Order, OrderStatus, Coupon } from '@prisma/client';
+import { PaginatedResponse } from '../../common/dto/pagination.dto';
+import { QueryOrdersDto } from './dto/query-orders.dto';
+import { Order, OrderStatus, Coupon, PaymentStatus } from '@prisma/client';
 import { CouponsService } from '../coupons/coupons.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -17,7 +18,7 @@ export class OrdersService {
       throw new BadRequestException('La venta debe tener al menos un item');
     }
 
-    let customerId: string | null = dto.customerId ?? null;
+    const customerId: string | null = dto.customerId ?? null;
     let addressId: string | null = null;
 
     if (customerId) {
@@ -97,8 +98,8 @@ export class OrdersService {
           ...(dto.notes != null && dto.notes !== '' && { notes: dto.notes }),
           ...(couponId != null && { couponId }),
           ...(couponCode != null && { couponCode }),
-          status: 'PENDING',
-          paymentStatus: 'PENDING',
+          status: (dto.status ?? 'PENDING') as any,
+          paymentStatus: (dto.paymentStatus ?? PaymentStatus.PENDING) as any,
         },
       });
 
@@ -124,7 +125,7 @@ export class OrdersService {
           orderId: newOrder.id,
           paymentMethod: dto.paymentMethod,
           amount: total,
-          status: 'PENDING',
+          status: (dto.paymentStatus ?? 'PENDING') as any,
         },
       });
 
@@ -156,11 +157,16 @@ export class OrdersService {
     return order!;
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResponse<Order>> {
-    const { skip, limit, page } = paginationDto;
+  async findAll(query: QueryOrdersDto): Promise<PaginatedResponse<Order>> {
+    const { skip, limit, page, customerId, status } = query;
+    const where = {
+      ...(customerId != null && { customerId }),
+      ...(status != null && { status }),
+    };
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
+        where: Object.keys(where).length > 0 ? where : undefined,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -172,7 +178,7 @@ export class OrdersService {
           payment: true,
         },
       }),
-      this.prisma.order.count(),
+      this.prisma.order.count({ where: Object.keys(where).length > 0 ? where : undefined }),
     ]);
 
     return {

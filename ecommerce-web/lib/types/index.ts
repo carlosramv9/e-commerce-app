@@ -289,7 +289,7 @@ export interface CreateProductDto {
   metaDescription?: string;
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export type UpdateProductDto = Partial<CreateProductDto>;
 
 export interface CreateCategoryDto {
   name: string;
@@ -300,10 +300,10 @@ export interface CreateCategoryDto {
   sortOrder: number;
 }
 
-export interface UpdateCategoryDto extends Partial<CreateCategoryDto> {}
+export type UpdateCategoryDto = Partial<CreateCategoryDto>;
 
 export interface CreateOrderDto {
-  customerId: string;
+  customerId?: string;
   items: {
     productId: string;
     quantity: number;
@@ -311,7 +311,10 @@ export interface CreateOrderDto {
   }[];
   couponCode?: string;
   paymentMethod: string;
+  shippingCost?: number;
   notes?: string;
+  paymentStatus?: PaymentStatus;
+  status?: OrderStatus;
 }
 
 export interface CreateCouponDto {
@@ -335,7 +338,7 @@ export interface CreateCouponDto {
   minOrders?: number;
 }
 
-export interface UpdateCouponDto extends Partial<CreateCouponDto> {}
+export type UpdateCouponDto = Partial<CreateCouponDto>;
 
 export interface CreateUserDto {
   firstName: string;
@@ -359,4 +362,4 @@ export interface CreateCustomerDto {
   status?: CustomerStatus;
 }
 
-export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
+export type UpdateCustomerDto = Partial<CreateCustomerDto>;

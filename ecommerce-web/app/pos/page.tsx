@@ -21,7 +21,7 @@ import { productsApi } from '@/lib/api/products';
 import { customersApi } from '@/lib/api/customers';
 import { ordersApi } from '@/lib/api/orders';
 import { categoriesApi } from '@/lib/api/categories';
-import { Product, Customer, Category } from '@/lib/types';
+import { Product, Customer, Category, PaymentStatus, OrderStatus } from '@/lib/types';
 import { toast } from 'sonner';
 import { CartItem } from '@/lib/interfaces/cart-item';
 import { AppliedCoupon } from '@/lib/interfaces/appliedCoupon';
@@ -30,6 +30,7 @@ import CheckoutModal from './(components)/CheckoutModal';
 import CouponModal from './(components)/CouponModal';
 import ProductCard from './(components)/ProductCard';
 import CustomerModal from './(components)/CustomerModal';
+import SaleSuccessModal from './(components)/SaleSuccessModal';
 
 // ─── Main POS Page ────────────────────────────────────────────────────────────
 export default function POSPage() {
@@ -50,6 +51,12 @@ export default function POSPage() {
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [saleSuccess, setSaleSuccess] = useState<{
+    orderId: string;
+    orderNumber: string;
+    total: number;
+    paymentMethod: string;
+  } | null>(null);
 
   const [isPending, startTransition] = useTransition();
   const [creatingOrder, setCreatingOrder] = useState(false);
@@ -183,44 +190,56 @@ export default function POSPage() {
     setAppliedCoupons((prev) => prev.filter((c) => c.code !== code));
   }, []);
 
-  // Order creation
+  // Order creation (cliente y cupones opcionales — venta rápida al público general)
   const handleCreateOrder = useCallback(async (paymentMethod: string) => {
-    if (cart.length === 0 || !selectedCustomerId) return;
+    if (cart.length === 0) return;
 
     try {
       setCreatingOrder(true);
-      const orderData = {
-        customerId: selectedCustomerId,
+      const orderData: Parameters<typeof ordersApi.create>[0] = {
         items: cart.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
           price: item.product.price,
         })),
-        couponCode: appliedCoupons[0]?.code,
         paymentMethod,
+        paymentStatus: PaymentStatus.PAID,
         shippingCost: 0,
         notes: '',
+        status: OrderStatus.CONFIRMED,
       };
+      if (selectedCustomerId) orderData.customerId = selectedCustomerId;
+      if (appliedCoupons[0]?.code) orderData.couponCode = appliedCoupons[0].code;
 
       const response = await ordersApi.create(orderData);
-      toast.success('Orden creada exitosamente');
 
-      setCart([]);
-      setSelectedCustomerId('');
-      setAppliedCoupons([]);
+      // Close checkout modal and reset cart before showing success
       setCheckoutModalOpen(false);
+      setCart([]);
+      setAppliedCoupons([]);
 
-      router.push(`/orders/${response.data.id}`);
-    } catch (error: any) {
-      toast.error(error.message || 'Error al crear orden');
+      setSaleSuccess({
+        orderId: response.data.id,
+        orderNumber: response.data.orderNumber,
+        total: response.data.total,
+        paymentMethod,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error al registrar venta';
+      toast.error(message);
     } finally {
       setCreatingOrder(false);
     }
-  }, [cart, selectedCustomerId, appliedCoupons, router]);
+  }, [cart, selectedCustomerId, appliedCoupons]);
 
   const handleNewCustomer = useCallback(() => {
     router.push('/customers/new');
   }, [router]);
+
+  const handleNewSale = useCallback(() => {
+    setSaleSuccess(null);
+    setSelectedCustomerId('');
+  }, []);
 
   if (loading) {
     return (
@@ -377,6 +396,16 @@ export default function POSPage() {
         total={total}
         onConfirm={handleCreateOrder}
         confirming={creatingOrder}
+      />
+
+      <SaleSuccessModal
+        open={!!saleSuccess}
+        orderNumber={saleSuccess?.orderNumber ?? ''}
+        total={saleSuccess?.total ?? 0}
+        paymentMethod={saleSuccess?.paymentMethod ?? 'CASH'}
+        customer={selectedCustomer}
+        autoCloseSecs={4}
+        onClose={handleNewSale}
       />
     </div>
   );

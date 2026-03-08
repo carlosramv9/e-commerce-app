@@ -8,6 +8,7 @@ import {
   Min,
   IsNotEmpty,
   MaxLength,
+  IsEnum,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -67,4 +68,15 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   couponCode?: string;
+
+  @ApiPropertyOptional({ enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'], default: 'PENDING' })
+  @IsOptional()
+  @IsEnum(['PENDING', 'PAID', 'FAILED', 'REFUNDED'])
+  paymentStatus?: string;
+
+  
+  @ApiPropertyOptional({ enum: ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'], default: 'PENDING' })
+  @IsOptional()
+  @IsEnum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'])
+  status?: string;
 }

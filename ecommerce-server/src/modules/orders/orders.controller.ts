@@ -2,7 +2,7 @@ import { Controller, Get, Param, Patch, Body, Query, UseGuards, Post, HttpCode, 
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { PaginationDto } from '../../common/dto/pagination.dto';
+import { QueryOrdersDto } from './dto/query-orders.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { OrderStatus } from '@prisma/client';
@@ -21,8 +21,8 @@ export class OrdersController {
 
   @Get()
   @ApiOperation({ summary: 'Get all orders' })
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.ordersService.findAll(paginationDto);
+  findAll(@Query() query: QueryOrdersDto) {
+    return this.ordersService.findAll(query);
   }
 
   @Get('stats')

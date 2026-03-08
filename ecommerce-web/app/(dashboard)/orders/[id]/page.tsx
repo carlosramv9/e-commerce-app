@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
+export default function OrderDetailsPage() {
   const router = useRouter();
   const t = useTranslations('orders');
   const tc = useTranslations('common');
@@ -39,17 +39,18 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const { id } = useParams();
 
   useEffect(() => {
     loadOrder();
-  }, [params.id]);
+  }, [id]);
 
   const loadOrder = async () => {
     try {
       setLoading(true);
-      const response = await ordersApi.getOne(params.id);
+      const response = await ordersApi.getOne(id as string);
       setOrder(response.data);
-    } catch (error) {
+    } catch {
       toast.error(t('detail.loadError'));
       router.push('/orders');
     } finally {
@@ -60,10 +61,10 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   const handleStatusUpdate = async (newStatus: OrderStatus) => {
     try {
       setUpdatingStatus(true);
-      await ordersApi.updateStatus(params.id, newStatus);
+      await ordersApi.updateStatus(id as string, newStatus);
       toast.success(t('detail.updateStatusSuccess'));
       loadOrder();
-    } catch (error) {
+    } catch {
       toast.error(t('detail.updateStatusError'));
     } finally {
       setUpdatingStatus(false);
@@ -78,9 +79,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 
     try {
       setSendingEmail(true);
-      await ordersApi.sendReceipt(params.id, order.customer.email);
+      await ordersApi.sendReceipt(id as string, order.customer.email);
       toast.success(t('detail.receiptSentSuccess'));
-    } catch (error) {
+    } catch {
       toast.error(t('detail.receiptSentError'));
     } finally {
       setSendingEmail(false);
