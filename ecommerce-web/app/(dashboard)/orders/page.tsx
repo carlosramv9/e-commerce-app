@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -37,29 +37,28 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    loadOrders();
-  }, [statusFilter, page]);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const params: any = {
+      const params: Record<string, unknown> = {
         page,
         limit: 10,
       };
-
       if (statusFilter) params.status = statusFilter;
 
       const response = await ordersApi.getAll(params);
       setOrders(response.data.data);
       setTotalPages(response.data.meta.totalPages);
-    } catch (error) {
-      toast.error('Error al cargar órdenes');
+    } catch {
+      toast.error('Error al cargar ventas');
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, page]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -90,12 +89,12 @@ export default function OrdersPage() {
   return (
     <div>
       <PageHeader
-        title="Órdenes"
-        description="Gestiona las órdenes de compra"
+        title="Ventas"
+        description="Historial de ventas realizadas a clientes"
         action={
           <Button onClick={() => router.push('/pos')}>
             <Plus className="h-4 w-4 mr-2" />
-            Nueva Orden (POS)
+            Nueva venta (POS)
           </Button>
         }
       />
@@ -133,14 +132,14 @@ export default function OrdersPage() {
             </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron órdenes</p>
+              <p className="text-gray-500">No se encontraron ventas</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Número de Orden</TableHead>
+                    <TableHead>Nº venta</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Items</TableHead>

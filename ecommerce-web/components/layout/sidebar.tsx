@@ -32,7 +32,7 @@ const menuItems = [
     icon: FolderTree,
   },
   {
-    title: 'Órdenes',
+    title: 'Ventas',
     href: '/orders',
     icon: ShoppingCart,
   },

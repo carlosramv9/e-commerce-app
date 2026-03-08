@@ -8,6 +8,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/exhaustive-deps': 'off',
     },
   },
   // Override default ignores of eslint-config-next.
