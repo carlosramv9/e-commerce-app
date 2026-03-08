@@ -28,10 +28,14 @@ export class CategoriesService {
       select: { slug: true },
     });
 
-    const slug = SlugUtil.generateUnique(
-      createCategoryDto.name,
-      existingSlugs.map((c) => c.slug),
-    );
+    const slug =
+      createCategoryDto.slug &&
+      !existingSlugs.some((c) => c.slug === createCategoryDto.slug)
+        ? createCategoryDto.slug
+        : SlugUtil.generateUnique(
+            createCategoryDto.name,
+            existingSlugs.map((c) => c.slug),
+          );
 
     return this.prisma.category.create({
       data: {
@@ -39,6 +43,8 @@ export class CategoriesService {
         slug,
         description: createCategoryDto.description,
         parentId: createCategoryDto.parentId,
+        status: createCategoryDto.status ?? 'ACTIVE',
+        sortOrder: createCategoryDto.sortOrder ?? 0,
       },
     });
   }
@@ -115,22 +121,37 @@ export class CategoriesService {
     }
 
     let slug = category.slug;
-    if (updateCategoryDto.name && updateCategoryDto.name !== category.name) {
+    if (updateCategoryDto.slug !== undefined) {
       const existingSlugs = await this.prisma.category.findMany({
         where: { id: { not: id } },
         select: { slug: true },
       });
-
+      slug = !existingSlugs.some((c) => c.slug === updateCategoryDto.slug)
+        ? updateCategoryDto.slug
+        : SlugUtil.generateUnique(
+            updateCategoryDto.name ?? category.name,
+            existingSlugs.map((c) => c.slug),
+          );
+    } else if (updateCategoryDto.name && updateCategoryDto.name !== category.name) {
+      const existingSlugs = await this.prisma.category.findMany({
+        where: { id: { not: id } },
+        select: { slug: true },
+      });
       slug = SlugUtil.generateUnique(
         updateCategoryDto.name,
         existingSlugs.map((c) => c.slug),
       );
     }
 
+    const { name, description, parentId, status, sortOrder } = updateCategoryDto;
     return this.prisma.category.update({
       where: { id },
       data: {
-        ...updateCategoryDto,
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(parentId !== undefined && { parentId }),
+        ...(status !== undefined && { status }),
+        ...(sortOrder !== undefined && { sortOrder }),
         slug,
       },
     });

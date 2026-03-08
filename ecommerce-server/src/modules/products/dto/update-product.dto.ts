@@ -1,7 +1,7 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsUUID, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductStatus, TaxCode } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class UpdateProductDto {
   @ApiPropertyOptional()
@@ -76,7 +76,9 @@ export class UpdateProductDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  @Type(() => Number)
+  @IsNumber({ allowNaN: false })
   @Min(0)
   taxRate?: number;
 

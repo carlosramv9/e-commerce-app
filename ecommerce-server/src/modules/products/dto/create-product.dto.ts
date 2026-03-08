@@ -1,7 +1,7 @@
 import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsUUID, Min, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductStatus, TaxCode } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -81,11 +81,15 @@ export class CreateProductDto {
   metaDescription?: string;
 
   @ApiPropertyOptional()
-  @IsNumber()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+  @Type(() => Number)
+  @IsNumber({ allowNaN: false })
   @Min(0)
   taxRate?: number;
 
   @ApiPropertyOptional({ enum: TaxCode, default: 'IVA_16' })
+  @IsOptional()
   @IsEnum(TaxCode)
   taxCode?: TaxCode;
 
