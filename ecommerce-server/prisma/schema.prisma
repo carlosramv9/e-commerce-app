@@ -47,6 +47,9 @@ model User {
   couponsCreated    Coupon[]   @relation("CouponCreatedBy")
   couponsUpdated    Coupon[]   @relation("CouponUpdatedBy")
 
+  roleAssignments  UserRoleAssignment[]
+  permissionGrants UserPermissionGrant[]
+
   @@map("users")
 }
 
@@ -351,4 +354,71 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id])
 
   @@map("payments")
+}
+
+// ============= Permissions & Roles =============
+
+model Permission {
+  id          String @id @default(uuid())
+  key         String @unique  // e.g., "products:create"
+  name        String
+  description String?
+  module      String          // e.g., "products"
+  action      String          // e.g., "create"
+
+  rolePermissions RolePermission[]
+  userGrants      UserPermissionGrant[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  isSystem    Boolean @default(false)
+  color       String? @default("#6366f1")
+
+  permissions     RolePermission[]
+  userAssignments UserRoleAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRoleAssignment {
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_role_assignments")
+}
+
+model UserPermissionGrant {
+  userId       String
+  permissionId String
+  granted      Boolean @default(true)
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permission_grants")
 }

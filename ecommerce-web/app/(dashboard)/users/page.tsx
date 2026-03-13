@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, ShieldCheck, KeyRound } from 'lucide-react';
 import { usersApi } from '@/lib/api/users';
 import { useAuthStore, canManageUsers } from '@/lib/store/auth-store';
 import { User, UserRole, UserStatus } from '@/lib/types';
@@ -66,18 +66,13 @@ export default function UsersPage() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const params: any = {
-        page,
-        limit: 10,
-      };
-
+      const params: any = { page, limit: 10 };
       if (roleFilter) params.role = roleFilter;
       if (statusFilter) params.status = statusFilter;
-
       const response = await usersApi.getAll(params);
       setUsers(response.data.data);
       setTotalPages(response.data.meta.totalPages);
-    } catch (error) {
+    } catch {
       toast.error(t('loadError'));
     } finally {
       setLoading(false);
@@ -86,12 +81,11 @@ export default function UsersPage() {
 
   const handleDelete = async () => {
     if (!userToDelete) return;
-
     try {
       await usersApi.delete(userToDelete);
       toast.success(t('deleteSuccess'));
       loadUsers();
-    } catch (error) {
+    } catch {
       toast.error(t('deleteError'));
     } finally {
       setDeleteDialogOpen(false);
@@ -107,13 +101,8 @@ export default function UsersPage() {
       STAFF: { label: t('roleStaff'), className: 'bg-green-100 text-green-800' },
       CASHIER: { label: t('roleCashier'), className: 'bg-purple-100 text-purple-800' },
     };
-
-    const variant = variants[role];
-    return (
-      <Badge className={variant.className} variant="secondary">
-        {variant.label}
-      </Badge>
-    );
+    const v = variants[role];
+    return <Badge className={v.className} variant="secondary">{v.label}</Badge>;
   };
 
   const getStatusBadge = (status: UserStatus) => {
@@ -122,18 +111,11 @@ export default function UsersPage() {
       INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
       SUSPENDED: { label: tc('statusSuspended'), className: 'bg-red-100 text-red-800' },
     };
-
-    const variant = variants[status];
-    return (
-      <Badge className={variant.className} variant="secondary">
-        {variant.label}
-      </Badge>
-    );
+    const v = variants[status];
+    return <Badge className={v.className} variant="secondary">{v.label}</Badge>;
   };
 
-  if (!canManage) {
-    return null;
-  }
+  if (!canManage) return null;
 
   return (
     <div>
@@ -152,7 +134,10 @@ export default function UsersPage() {
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="grid gap-4 md:grid-cols-2">
-            <Select value={roleFilter || 'all'} onValueChange={(value) => setRoleFilter(value === 'all' ? '' : value)}>
+            <Select
+              value={roleFilter || 'all'}
+              onValueChange={(v) => setRoleFilter(v === 'all' ? '' : v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t('allRoles')} />
               </SelectTrigger>
@@ -166,7 +151,10 @@ export default function UsersPage() {
               </SelectContent>
             </Select>
 
-            <Select value={statusFilter || 'all'} onValueChange={(value) => setStatusFilter(value === 'all' ? '' : value)}>
+            <Select
+              value={statusFilter || 'all'}
+              onValueChange={(v) => setStatusFilter(v === 'all' ? '' : v)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={tc('allStatuses')} />
               </SelectTrigger>
@@ -203,6 +191,7 @@ export default function UsersPage() {
                     <TableHead>{t('colEmail')}</TableHead>
                     <TableHead>{t('colRole')}</TableHead>
                     <TableHead>{t('colStatus')}</TableHead>
+                    <TableHead>Roles / Permisos</TableHead>
                     <TableHead className="text-right">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -212,15 +201,42 @@ export default function UsersPage() {
                       <TableCell className="font-medium">
                         {user.firstName} {user.lastName}
                       </TableCell>
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell className="text-gray-600">{user.email}</TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>{getStatusBadge(user.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {/* Dynamic roles count */}
+                          {(user._count?.roleAssignments ?? 0) > 0 ? (
+                            <span
+                              className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-full px-2 py-0.5"
+                              title="Roles dinámicos asignados"
+                            >
+                              <ShieldCheck className="h-3 w-3" />
+                              {user._count!.roleAssignments}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                          {/* Extra permissions count */}
+                          {(user._count?.permissionGrants ?? 0) > 0 && (
+                            <span
+                              className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 rounded-full px-2 py-0.5"
+                              title="Permisos individuales"
+                            >
+                              <KeyRound className="h-3 w-3" />
+                              {user._count!.permissionGrants}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => router.push(`/users/${user.id}/edit`)}
+                            title="Editar usuario"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -232,6 +248,7 @@ export default function UsersPage() {
                                 setUserToDelete(user.id);
                                 setDeleteDialogOpen(true);
                               }}
+                              title="Eliminar usuario"
                             >
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
@@ -245,9 +262,9 @@ export default function UsersPage() {
 
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
-                <div className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500">
                   {tc('page', { current: page, total: totalPages })}
-                </div>
+                </p>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -272,14 +289,12 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{tc('confirmDeleteTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('deleteDescription')}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t('deleteDescription')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>

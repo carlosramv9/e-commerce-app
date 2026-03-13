@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
+import { ALL_PERMISSIONS, PermissionDef } from '../src/modules/permissions/permissions.constants';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -358,6 +359,153 @@ async function main() {
   });
 
   console.log('✅ Created sample coupons');
+
+  // ============= Permissions & Roles =============
+  console.log('🌱 Seeding permissions...');
+
+  // Upsert all permissions
+  for (const perm of ALL_PERMISSIONS) {
+    await prisma.permission.upsert({
+      where: { key: perm.key },
+      update: {
+        name: perm.name,
+        description: perm.description ?? null,
+        module: perm.module,
+        action: perm.action,
+      },
+      create: {
+        key: perm.key,
+        name: perm.name,
+        description: perm.description ?? null,
+        module: perm.module,
+        action: perm.action,
+      },
+    });
+  }
+
+  const allPermissions = await prisma.permission.findMany();
+  const permByKey = new Map(allPermissions.map((p) => [p.key, p]));
+
+  console.log(`✅ Seeded ${allPermissions.length} permissions`);
+
+  // Helper to get permission IDs by keys
+  function getPermIds(...keys: string[]): string[] {
+    return keys
+      .map((k) => permByKey.get(k)?.id)
+      .filter((id): id is string => id !== undefined);
+  }
+
+  // Super Admin role — all permissions
+  const superAdminRole = await prisma.role.upsert({
+    where: { name: 'Super Admin' },
+    update: { description: 'Full access to everything', isSystem: true, color: '#ef4444' },
+    create: {
+      name: 'Super Admin',
+      description: 'Full access to everything',
+      isSystem: true,
+      color: '#ef4444',
+    },
+  });
+
+  // Delete and recreate permissions for system roles to keep them in sync
+  await prisma.rolePermission.deleteMany({ where: { roleId: superAdminRole.id } });
+  if (allPermissions.length > 0) {
+    await prisma.rolePermission.createMany({
+      data: allPermissions.map((p) => ({ roleId: superAdminRole.id, permissionId: p.id })),
+      skipDuplicates: true,
+    });
+  }
+  console.log('✅ Created/updated Super Admin role');
+
+  // Admin role — all except roles:delete and users:delete
+  const adminExcluded = new Set(['roles:delete', 'users:delete']);
+  const adminPermIds = allPermissions
+    .filter((p) => !adminExcluded.has(p.key))
+    .map((p) => p.id);
+
+  const adminRole = await prisma.role.upsert({
+    where: { name: 'Admin' },
+    update: { description: 'Administration access', isSystem: true, color: '#f97316' },
+    create: {
+      name: 'Admin',
+      description: 'Administration access',
+      isSystem: true,
+      color: '#f97316',
+    },
+  });
+
+  await prisma.rolePermission.deleteMany({ where: { roleId: adminRole.id } });
+  if (adminPermIds.length > 0) {
+    await prisma.rolePermission.createMany({
+      data: adminPermIds.map((permissionId) => ({ roleId: adminRole.id, permissionId })),
+      skipDuplicates: true,
+    });
+  }
+  console.log('✅ Created/updated Admin role');
+
+  // Gerente role — management subset
+  const gerentePermKeys = [
+    'dashboard:view',
+    'pos:access',
+    'products:view', 'products:create', 'products:edit',
+    'categories:view', 'categories:create', 'categories:edit',
+    'orders:view', 'orders:create', 'orders:edit',
+    'customers:view', 'customers:create', 'customers:edit',
+    'coupons:view', 'coupons:create', 'coupons:edit',
+    'users:view',
+    'roles:view',
+    'reports:view',
+  ];
+  const gerentePermIds = getPermIds(...gerentePermKeys);
+
+  const gerenteRole = await prisma.role.upsert({
+    where: { name: 'Gerente' },
+    update: { description: 'Store manager', isSystem: false, color: '#8b5cf6' },
+    create: {
+      name: 'Gerente',
+      description: 'Store manager',
+      isSystem: false,
+      color: '#8b5cf6',
+    },
+  });
+
+  await prisma.rolePermission.deleteMany({ where: { roleId: gerenteRole.id } });
+  if (gerentePermIds.length > 0) {
+    await prisma.rolePermission.createMany({
+      data: gerentePermIds.map((permissionId) => ({ roleId: gerenteRole.id, permissionId })),
+      skipDuplicates: true,
+    });
+  }
+  console.log('✅ Created/updated Gerente role');
+
+  // Vendedor role — small subset for POS/sales staff
+  const vendedorPermKeys = [
+    'pos:access',
+    'products:view',
+    'orders:view', 'orders:create',
+    'customers:view',
+  ];
+  const vendedorPermIds = getPermIds(...vendedorPermKeys);
+
+  const vendedorRole = await prisma.role.upsert({
+    where: { name: 'Vendedor' },
+    update: { description: 'Sales staff', isSystem: false, color: '#10b981' },
+    create: {
+      name: 'Vendedor',
+      description: 'Sales staff',
+      isSystem: false,
+      color: '#10b981',
+    },
+  });
+
+  await prisma.rolePermission.deleteMany({ where: { roleId: vendedorRole.id } });
+  if (vendedorPermIds.length > 0) {
+    await prisma.rolePermission.createMany({
+      data: vendedorPermIds.map((permissionId) => ({ roleId: vendedorRole.id, permissionId })),
+      skipDuplicates: true,
+    });
+  }
+  console.log('✅ Created/updated Vendedor role');
 
   console.log('🎉 Seeding completed!');
 }

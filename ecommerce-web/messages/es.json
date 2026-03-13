@@ -20,6 +20,7 @@
     "allStatuses": "Todos los estados",
     "statusActive": "Activo",
     "statusInactive": "Inactivo",
+    "statusSuspended": "Suspendido",
     "statusBlocked": "Bloqueado",
     "statusNew": "Nuevo",
     "statusRegular": "Regular",
@@ -39,7 +40,8 @@
     "pos": "POS",
     "customers": "Clientes",
     "coupons": "Cupones",
-    "users": "Usuarios"
+    "users": "Usuarios",
+    "roles": "Roles"
   },
   "auth": {
     "myAccount": "Mi Cuenta",
@@ -450,6 +452,7 @@
     "colName": "Nombre",
     "colEmail": "Email",
     "colRole": "Rol",
+    "colStatus": "Estado",
     "noResults": "No se encontraron usuarios",
     "deleteDescription": "Esta acción no se puede deshacer. El usuario será eliminado permanentemente.",
     "permissionsError": "No tienes permisos para acceder a esta página",

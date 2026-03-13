@@ -20,6 +20,7 @@
     "allStatuses": "All statuses",
     "statusActive": "Active",
     "statusInactive": "Inactive",
+    "statusSuspended": "Suspended",
     "statusBlocked": "Blocked",
     "statusNew": "New",
     "statusRegular": "Regular",
@@ -39,7 +40,8 @@
     "pos": "POS",
     "customers": "Customers",
     "coupons": "Coupons",
-    "users": "Users"
+    "users": "Users",
+    "roles": "Roles"
   },
   "auth": {
     "myAccount": "My Account",
@@ -450,6 +452,7 @@
     "colName": "Name",
     "colEmail": "Email",
     "colRole": "Role",
+    "colStatus": "Status",
     "noResults": "No users found",
     "deleteDescription": "This action cannot be undone. The user will be permanently deleted.",
     "permissionsError": "You don't have permission to access this page",

@@ -86,7 +86,66 @@ export interface User {
   status: UserStatus;
   createdAt: string;
   updatedAt: string;
+  _count?: { roleAssignments: number; permissionGrants: number };
 }
+
+// ── Permissions & Roles ──────────────────────────────────────────────────────
+
+export interface Permission {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  module: string;
+  action: string;
+}
+
+export interface PermissionGroup {
+  module: string;
+  permissions: Permission[];
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string | null;
+  isSystem: boolean;
+  color: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { permissions: number; userAssignments: number };
+}
+
+export interface RolePermission {
+  roleId: string;
+  permissionId: string;
+  permission: Permission;
+}
+
+export interface RoleWithPermissions extends Role {
+  permissions: RolePermission[];
+}
+
+export interface UserRoleAssignment {
+  userId: string;
+  roleId: string;
+  assignedAt: string;
+  role: RoleWithPermissions;
+}
+
+export interface UserPermissionGrant {
+  userId: string;
+  permissionId: string;
+  granted: boolean;
+  permission: Permission;
+}
+
+export interface UserWithRoles extends User {
+  roleAssignments: UserRoleAssignment[];
+  permissionGrants: UserPermissionGrant[];
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 export interface Customer {
   id: string;

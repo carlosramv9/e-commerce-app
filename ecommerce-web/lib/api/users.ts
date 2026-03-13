@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { User, PaginatedResponse, CreateUserDto, UpdateUserDto } from '../types';
+import { User, PaginatedResponse, CreateUserDto, UpdateUserDto, UserWithRoles } from '../types';
 
 interface QueryParams {
   page?: number;
@@ -19,6 +19,17 @@ export const usersApi = {
   update: (id: string, data: UpdateUserDto) => apiClient.patch<User>(`/users/${id}`, data),
 
   delete: (id: string) => apiClient.delete(`/users/${id}`),
+
+  // Roles & permissions
+  getRoles: (id: string) => apiClient.get<UserWithRoles>(`/users/${id}/roles`),
+  setRoles: (id: string, roleIds: string[]) =>
+    apiClient.put(`/users/${id}/roles`, { roleIds }),
+  setPermissions: (
+    id: string,
+    grants: { permissionId: string; granted: boolean }[],
+  ) => apiClient.put(`/users/${id}/permissions`, { grants }),
+  getEffectivePermissions: (id: string) =>
+    apiClient.get<string[]>(`/users/${id}/effective-permissions`),
 };
 
 export default usersApi;

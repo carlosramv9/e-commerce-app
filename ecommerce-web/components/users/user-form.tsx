@@ -26,18 +26,19 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { User } from '@/lib/types';
-import { useAuthStore } from '@/lib/store/auth-store';
 
 interface UserFormProps {
   user?: User;
   onSubmit: (data: any) => Promise<void>;
   isLoading?: boolean;
+  /** When true the default submit button row is not rendered (parent renders its own) */
+  hideActions?: boolean;
+  /** Optional id so an external submit button can target this form */
+  formId?: string;
 }
 
-export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
+export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: UserFormProps) {
   const t = useTranslations('users');
-  const currentUser = useAuthStore((state) => state.user);
-  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
 
   const userSchema = useMemo(
     () =>
@@ -78,7 +79,7 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form id={formId} onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>{t('form.title')}</CardTitle>
@@ -145,36 +146,7 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
               )}
             />
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.role')} *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('form.rolePlaceholder')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isSuperAdmin && <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>}
-                        {isSuperAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="STAFF">Staff</SelectItem>
-                        <SelectItem value="CASHIER">{t('roleCashier')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      {!isSuperAdmin && t('form.roleDescription')}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
+            <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
@@ -196,16 +168,17 @@ export function UserForm({ user, onSubmit, isLoading }: UserFormProps) {
                   </FormItem>
                 )}
               />
-            </div>
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {user ? t('form.submitUpdate') : t('form.submitCreate')}
-          </Button>
-        </div>
+        {!hideActions && (
+          <div className="flex justify-end gap-4">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {user ? t('form.submitUpdate') : t('form.submitCreate')}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

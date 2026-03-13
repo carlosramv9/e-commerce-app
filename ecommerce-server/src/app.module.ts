@@ -14,6 +14,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditContextInterceptor } from './common/interceptors/audit-context.interceptor';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { EmailModule } from './modules/email/email.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { EmailModule } from './modules/email/email.module';
     DashboardModule,
     CouponsModule,
     EmailModule,
+    PermissionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [
