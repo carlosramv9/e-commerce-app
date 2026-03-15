@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { TenantContextService } from '../../common/context/tenant-context.service';
 import { SlugUtil } from '../../common/utils/slug.util';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -15,11 +16,16 @@ import { Product, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService,
+  ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
+    const tenantId = this.tenantContext.requireTenantId();
+
     const existingProduct = await this.prisma.product.findUnique({
-      where: { sku: createProductDto.sku },
+      where: { tenantId_sku: { tenantId, sku: createProductDto.sku } },
     });
 
     if (existingProduct) {
@@ -27,8 +33,8 @@ export class ProductsService {
     }
 
     if (createProductDto.categoryId) {
-      const category = await this.prisma.category.findUnique({
-        where: { id: createProductDto.categoryId },
+      const category = await this.prisma.category.findFirst({
+        where: { id: createProductDto.categoryId, tenantId },
       });
 
       if (!category) {
@@ -37,6 +43,7 @@ export class ProductsService {
     }
 
     const existingSlugs = await this.prisma.product.findMany({
+      where: { tenantId },
       select: { slug: true },
     });
 
@@ -48,6 +55,7 @@ export class ProductsService {
     return this.prisma.product.create({
       data: {
         ...createProductDto,
+        tenantId,
         slug,
       },
       include: {
@@ -62,7 +70,8 @@ export class ProductsService {
   ): Promise<PaginatedResponse<Product>> {
     const { skip, limit, page, search, categoryId, status } = queryDto;
 
-    const where: Prisma.ProductWhereInput = {};
+    const tenantId = this.tenantContext.requireTenantId();
+    const where: Prisma.ProductWhereInput = { tenantId };
 
     if (search) {
       where.OR = [
@@ -111,23 +120,17 @@ export class ProductsService {
   }
 
   async findOne(id: string): Promise<Product> {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+    const tenantId = this.tenantContext.requireTenantId();
+    const product = await this.prisma.product.findFirst({
+      where: { id, tenantId },
       include: {
         category: true,
-        images: {
-          orderBy: { sortOrder: 'asc' },
-        },
-        _count: {
-          select: { orderItems: true },
-        },
+        images: { orderBy: { sortOrder: 'asc' } },
+        _count: { select: { orderItems: true } },
       },
     });
 
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
+    if (!product) throw new NotFoundException('Product not found');
     return product;
   }
 

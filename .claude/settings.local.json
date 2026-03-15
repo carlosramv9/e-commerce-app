@@ -12,7 +12,9 @@
       "Bash(npm run build:*)",
       "Bash(npx prisma db seed)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm dev)"
+      "Bash(pnpm dev)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

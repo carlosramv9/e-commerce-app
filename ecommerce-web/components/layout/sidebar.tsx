@@ -13,6 +13,7 @@ import {
   Shield,
   ShieldCheck,
   Store,
+  Building2,
 } from 'lucide-react';
 import { useAuthStore, canManageUsers } from '@/lib/store/auth-store';
 import { useTranslations } from 'next-intl';
@@ -26,7 +27,8 @@ type MenuItemKey =
   | 'customers'
   | 'coupons'
   | 'users'
-  | 'roles';
+  | 'roles'
+  | 'branches';
 
 const menuItems: { key: MenuItemKey; href: string; icon: React.ElementType; adminOnly?: boolean }[] = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -38,6 +40,7 @@ const menuItems: { key: MenuItemKey; href: string; icon: React.ElementType; admi
   { key: 'coupons', href: '/coupons', icon: Ticket },
   { key: 'users', href: '/users', icon: Shield, adminOnly: true },
   { key: 'roles', href: '/roles', icon: ShieldCheck, adminOnly: true },
+  { key: 'branches', href: '/settings/branches', icon: Building2, adminOnly: true },
 ];
 
 export function Sidebar() {

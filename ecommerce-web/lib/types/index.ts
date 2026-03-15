@@ -1,5 +1,103 @@
 // Enums matching backend Prisma schema
 
+// ── Tenant enums ─────────────────────────────────────────────────────────────
+export enum TenantStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  TRIAL = 'TRIAL',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum TenantPlan {
+  FREE = 'FREE',
+  STARTER = 'STARTER',
+  PRO = 'PRO',
+  PLUS = 'PLUS',
+  ENTERPRISE = 'ENTERPRISE',
+}
+
+export enum TenantRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
+  STAFF = 'STAFF',
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  status: TenantStatus;
+  plan: TenantPlan;
+  settings: Record<string, any> | null;
+  trialEndsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** Present when fetched via /tenants/:id with includes */
+  _count?: { memberships: number; products: number; customers: number; orders: number };
+}
+
+export interface TenantSummary {
+  id: string;
+  name: string;
+  slug: string;
+  memberRole: TenantRole;
+  plan: TenantPlan;
+}
+
+export interface TenantMember {
+  tenantId: string;
+  userId: string;
+  role: TenantRole;
+  assignedAt: string;
+  user: { id: string; email: string; firstName: string; lastName: string; status: string };
+}
+
+// ── Branches ──────────────────────────────────────────────────────────────────
+
+export enum BranchStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  CLOSED = 'CLOSED',
+}
+
+export interface Branch {
+  id: string;
+  tenantId: string;
+  name: string;
+  code: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  phone: string | null;
+  email: string | null;
+  managerId: string | null;
+  isMain: boolean;
+  status: BranchStatus;
+  settings: Record<string, any> | null;
+  createdAt: string;
+  updatedAt: string;
+  manager?: { id: string; firstName: string; lastName: string; email: string } | null;
+  _count?: { memberships: number; orders: number; inventory: number };
+}
+
+export interface BranchInventoryItem {
+  branchId: string;
+  productId: string;
+  stock: number;
+  updatedAt: string;
+  product: { id: string; name: string; sku: string; price: number; status: string; lowStockAlert: number };
+}
+
+export interface BranchMember {
+  branchId: string;
+  userId: string;
+  isPrimary: boolean;
+  assignedAt: string;
+  user: { id: string; email: string; firstName: string; lastName: string; status: string };
+}
+
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
@@ -312,6 +410,10 @@ export interface ApiError {
 export interface AuthResponse {
   user: User;
   accessToken: string;
+  tenant?: TenantSummary;
+  /** Returned when user has multiple tenants and no tenantSlug was sent */
+  availableTenants?: TenantSummary[];
+  currentBranchId?: string;
 }
 
 export interface DashboardStats {
@@ -328,6 +430,7 @@ export interface DashboardStats {
 export interface LoginDto {
   email: string;
   password: string;
+  tenantSlug?: string;
 }
 
 export interface CreateProductDto {

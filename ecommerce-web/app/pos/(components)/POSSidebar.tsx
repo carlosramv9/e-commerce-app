@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/store/auth-store';
+import BranchSelector from './BranchSelector';
 
 export type POSSection = 'cobrar' | 'ventas' | 'clientes' | 'inventario' | 'promociones';
 
@@ -140,6 +141,11 @@ export default function POSSidebar({
                         </p>
                         <p className="text-white/20 text-[10px] mt-0.5">Vendedor</p>
                     </div>
+                </div>
+
+                {/* Branch selector (desktop only) */}
+                <div className="hidden lg:block">
+                    <BranchSelector />
                 </div>
 
                 {/* Exit */}

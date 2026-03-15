@@ -38,21 +38,21 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    console.log('Login form submitted:', data);
     try {
-      console.log('Calling login function...');
-      await login(data);
-      console.log('Login successful!');
+      const response = await login(data);
       toast.success('¡Inicio de sesión exitoso!');
-      router.push('/dashboard');
+      // If user has multiple tenants and none was auto-selected, go to picker
+      if (!response.tenant && response.availableTenants && response.availableTenants.length > 0) {
+        router.push('/select-tenant');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
-      console.error('Login error:', error);
       toast.error(error.message || 'Error al iniciar sesión');
     }
   };
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log('Form submit event triggered');
     e.preventDefault();
     e.stopPropagation();
     await form.handleSubmit(onSubmit)();

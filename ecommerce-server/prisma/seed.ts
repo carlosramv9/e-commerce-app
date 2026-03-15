@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
-import { ALL_PERMISSIONS, PermissionDef } from '../src/modules/permissions/permissions.constants';
+import { ALL_PERMISSIONS } from '../src/modules/permissions/permissions.constants';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -11,6 +11,19 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // Create default tenant (required for multitenant schema)
+  const tenant = await prisma.tenant.upsert({
+    where: { slug: 'default' },
+    update: {},
+    create: {
+      name: 'Main Store',
+      slug: 'default',
+      status: 'ACTIVE',
+      plan: 'PRO',
+    },
+  });
+  console.log('✅ Created default tenant:', tenant.slug);
 
   // Create admin user
   const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -28,11 +41,62 @@ async function main() {
   });
   console.log('✅ Created admin user:', admin.email);
 
-  // Create Walk-in customer (default for POS anonymous sales)
-  const walkInCustomer = await prisma.customer.upsert({
-    where: { email: 'walkin@store.local' },
+  // Link admin to default tenant as OWNER
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId: tenant.id, userId: admin.id } },
     update: {},
     create: {
+      tenantId: tenant.id,
+      userId: admin.id,
+      role: 'OWNER',
+    },
+  });
+
+  // ============= Segundo tenant y usuario asociado =============
+  const tenantNorte = await prisma.tenant.upsert({
+    where: { slug: 'tienda-norte' },
+    update: {},
+    create: {
+      name: 'Tienda Norte',
+      slug: 'tienda-norte',
+      status: 'ACTIVE',
+      plan: 'STARTER',
+    },
+  });
+  console.log('✅ Created tenant:', tenantNorte.slug);
+
+  const ownerNortePassword = await bcrypt.hash('owner123', 10);
+  const ownerNorte = await prisma.user.upsert({
+    where: { email: 'owner@tienda-norte.com' },
+    update: {},
+    create: {
+      email: 'owner@tienda-norte.com',
+      password: ownerNortePassword,
+      firstName: 'María',
+      lastName: 'García',
+      role: 'MANAGER',
+      status: 'ACTIVE',
+    },
+  });
+  console.log('✅ Created user for Tienda Norte:', ownerNorte.email);
+
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId: tenantNorte.id, userId: ownerNorte.id } },
+    update: {},
+    create: {
+      tenantId: tenantNorte.id,
+      userId: ownerNorte.id,
+      role: 'OWNER',
+    },
+  });
+  console.log('✅ Linked user to Tienda Norte (OWNER)');
+
+  // Create Walk-in customer (default for POS anonymous sales)
+  const walkInCustomer = await prisma.customer.upsert({
+    where: { tenantId_email: { tenantId: tenant.id, email: 'walkin@store.local' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
       email: 'walkin@store.local',
       firstName: 'Cliente',
       lastName: 'General',
@@ -73,9 +137,10 @@ async function main() {
 
   // Create categories
   const electronicsCategory = await prisma.category.upsert({
-    where: { slug: 'electronics' },
+    where: { tenantId_slug: { tenantId: tenant.id, slug: 'electronics' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       name: 'Electronics',
       slug: 'electronics',
       description: 'Electronic devices and accessories',
@@ -86,9 +151,10 @@ async function main() {
   });
 
   const phonesCategory = await prisma.category.upsert({
-    where: { slug: 'smartphones' },
+    where: { tenantId_slug: { tenantId: tenant.id, slug: 'smartphones' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       name: 'Smartphones',
       slug: 'smartphones',
       description: 'Latest smartphones',
@@ -100,9 +166,10 @@ async function main() {
   });
 
   const clothingCategory = await prisma.category.upsert({
-    where: { slug: 'clothing' },
+    where: { tenantId_slug: { tenantId: tenant.id, slug: 'clothing' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       name: 'Clothing',
       slug: 'clothing',
       description: 'Men and women clothing',
@@ -116,9 +183,10 @@ async function main() {
 
   // Create products
   const product1 = await prisma.product.upsert({
-    where: { sku: 'IPH-14-PRO-128' },
+    where: { tenantId_sku: { tenantId: tenant.id, sku: 'IPH-14-PRO-128' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       sku: 'IPH-14-PRO-128',
       name: 'iPhone 14 Pro 128GB',
       slug: 'iphone-14-pro-128gb',
@@ -137,29 +205,33 @@ async function main() {
     },
   });
 
-  await prisma.productImage.createMany({
-    data: [
-      {
-        productId: product1.id,
-        url: '/images/iphone-14-pro-1.jpg',
-        altText: 'iPhone 14 Pro front view',
-        sortOrder: 1,
-        isPrimary: true,
-      },
-      {
-        productId: product1.id,
-        url: '/images/iphone-14-pro-2.jpg',
-        altText: 'iPhone 14 Pro back view',
-        sortOrder: 2,
-        isPrimary: false,
-      },
-    ],
-  });
+  const existingImages1 = await prisma.productImage.count({ where: { productId: product1.id } });
+  if (existingImages1 === 0) {
+    await prisma.productImage.createMany({
+      data: [
+        {
+          productId: product1.id,
+          url: '/images/iphone-14-pro-1.jpg',
+          altText: 'iPhone 14 Pro front view',
+          sortOrder: 1,
+          isPrimary: true,
+        },
+        {
+          productId: product1.id,
+          url: '/images/iphone-14-pro-2.jpg',
+          altText: 'iPhone 14 Pro back view',
+          sortOrder: 2,
+          isPrimary: false,
+        },
+      ],
+    });
+  }
 
-  const product2 = await prisma.product.upsert({
-    where: { sku: 'TSH-BLK-M' },
+  await prisma.product.upsert({
+    where: { tenantId_sku: { tenantId: tenant.id, sku: 'TSH-BLK-M' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       sku: 'TSH-BLK-M',
       name: 'Classic Black T-Shirt',
       slug: 'classic-black-tshirt',
@@ -180,9 +252,10 @@ async function main() {
 
   // Create customer
   const customer = await prisma.customer.upsert({
-    where: { email: 'john.doe@example.com' },
+    where: { tenantId_email: { tenantId: tenant.id, email: 'john.doe@example.com' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       email: 'john.doe@example.com',
       firstName: 'John',
       lastName: 'Doe',
@@ -224,14 +297,15 @@ async function main() {
 
   // Create sample order
   const orderNumber = `ORD-${Date.now()}`;
-  const existingOrder = await prisma.order.findUnique({
-    where: { orderNumber },
+  const existingOrder = await prisma.order.findFirst({
+    where: { tenantId: tenant.id, orderNumber },
   });
 
   let order;
   if (!existingOrder) {
     order = await prisma.order.create({
       data: {
+        tenantId: tenant.id,
         orderNumber,
         customerId: customer.id,
         addressId: address.id,
@@ -281,10 +355,11 @@ async function main() {
   console.log('✅ Created sample order');
 
   // Create sample coupons
-  const coupon1 = await prisma.coupon.upsert({
-    where: { code: 'WELCOME10' },
+  await prisma.coupon.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'WELCOME10' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       code: 'WELCOME10',
       description: 'Descuento de bienvenida para nuevos clientes',
       type: 'PERCENTAGE',
@@ -300,10 +375,11 @@ async function main() {
     },
   });
 
-  const coupon2 = await prisma.coupon.upsert({
-    where: { code: 'VIP15' },
+  await prisma.coupon.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'VIP15' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       code: 'VIP15',
       description: 'Descuento exclusivo para clientes VIP',
       type: 'PERCENTAGE',
@@ -318,10 +394,11 @@ async function main() {
     },
   });
 
-  const coupon3 = await prisma.coupon.upsert({
-    where: { code: 'IPHONE50' },
+  await prisma.coupon.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'IPHONE50' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       code: 'IPHONE50',
       description: '$50 de descuento en iPhones',
       type: 'FIXED',
@@ -338,10 +415,11 @@ async function main() {
     },
   });
 
-  const coupon4 = await prisma.coupon.upsert({
-    where: { code: 'ELECTRONICS20' },
+  await prisma.coupon.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'ELECTRONICS20' } },
     update: {},
     create: {
+      tenantId: tenant.id,
       code: 'ELECTRONICS20',
       description: '20% de descuento en Electrónicos',
       type: 'PERCENTAGE',
@@ -395,11 +473,12 @@ async function main() {
       .filter((id): id is string => id !== undefined);
   }
 
-  // Super Admin role — all permissions
+  // Super Admin role — all permissions (tenant-scoped)
   const superAdminRole = await prisma.role.upsert({
-    where: { name: 'Super Admin' },
+    where: { tenantId_name: { tenantId: tenant.id, name: 'Super Admin' } },
     update: { description: 'Full access to everything', isSystem: true, color: '#ef4444' },
     create: {
+      tenantId: tenant.id,
       name: 'Super Admin',
       description: 'Full access to everything',
       isSystem: true,
@@ -424,9 +503,10 @@ async function main() {
     .map((p) => p.id);
 
   const adminRole = await prisma.role.upsert({
-    where: { name: 'Admin' },
+    where: { tenantId_name: { tenantId: tenant.id, name: 'Admin' } },
     update: { description: 'Administration access', isSystem: true, color: '#f97316' },
     create: {
+      tenantId: tenant.id,
       name: 'Admin',
       description: 'Administration access',
       isSystem: true,
@@ -459,9 +539,10 @@ async function main() {
   const gerentePermIds = getPermIds(...gerentePermKeys);
 
   const gerenteRole = await prisma.role.upsert({
-    where: { name: 'Gerente' },
+    where: { tenantId_name: { tenantId: tenant.id, name: 'Gerente' } },
     update: { description: 'Store manager', isSystem: false, color: '#8b5cf6' },
     create: {
+      tenantId: tenant.id,
       name: 'Gerente',
       description: 'Store manager',
       isSystem: false,
@@ -488,9 +569,10 @@ async function main() {
   const vendedorPermIds = getPermIds(...vendedorPermKeys);
 
   const vendedorRole = await prisma.role.upsert({
-    where: { name: 'Vendedor' },
+    where: { tenantId_name: { tenantId: tenant.id, name: 'Vendedor' } },
     update: { description: 'Sales staff', isSystem: false, color: '#10b981' },
     create: {
+      tenantId: tenant.id,
       name: 'Vendedor',
       description: 'Sales staff',
       isSystem: false,
@@ -507,6 +589,187 @@ async function main() {
   }
   console.log('✅ Created/updated Vendedor role');
 
+  // ============= PLUS tenant: multi-branch example =============
+  const tenantPlus = await prisma.tenant.upsert({
+    where: { slug: 'fashion-plus' },
+    update: { plan: 'PLUS' },
+    create: {
+      name: 'Fashion Plus',
+      slug: 'fashion-plus',
+      status: 'ACTIVE',
+      plan: 'PLUS',
+    },
+  });
+  console.log('✅ Created PLUS tenant:', tenantPlus.slug);
+
+  const plusOwnerPw = await bcrypt.hash('plus123', 10);
+  const plusOwner = await prisma.user.upsert({
+    where: { email: 'owner@fashion-plus.com' },
+    update: {},
+    create: {
+      email: 'owner@fashion-plus.com',
+      password: plusOwnerPw,
+      firstName: 'Carlos',
+      lastName: 'Ramírez',
+      role: 'MANAGER',
+      status: 'ACTIVE',
+    },
+  });
+  await prisma.tenantMembership.upsert({
+    where: { tenantId_userId: { tenantId: tenantPlus.id, userId: plusOwner.id } },
+    update: {},
+    create: { tenantId: tenantPlus.id, userId: plusOwner.id, role: 'OWNER' },
+  });
+  console.log('✅ Created PLUS owner:', plusOwner.email);
+
+  // Products for PLUS tenant (clone of default products, different SKUs)
+  const plusProduct1 = await prisma.product.upsert({
+    where: { tenantId_sku: { tenantId: tenantPlus.id, sku: 'FP-TSH-BLK-M' } },
+    update: {},
+    create: {
+      tenantId: tenantPlus.id,
+      sku: 'FP-TSH-BLK-M',
+      name: 'Camiseta Negra Clásica',
+      slug: 'camiseta-negra-clasica',
+      description: 'Camiseta 100% algodón',
+      price: 299.00,
+      costPrice: 120.00,
+      status: 'ACTIVE',
+      stock: 300,
+      trackInventory: true,
+      lowStockAlert: 20,
+      createdById: plusOwner.id,
+    },
+  });
+
+  const plusProduct2 = await prisma.product.upsert({
+    where: { tenantId_sku: { tenantId: tenantPlus.id, sku: 'FP-JNS-BLU-32' } },
+    update: {},
+    create: {
+      tenantId: tenantPlus.id,
+      sku: 'FP-JNS-BLU-32',
+      name: 'Jeans Azul Slim Fit 32',
+      slug: 'jeans-azul-slim-fit-32',
+      description: 'Jeans slim fit color azul',
+      price: 599.00,
+      costPrice: 250.00,
+      status: 'ACTIVE',
+      stock: 200,
+      trackInventory: true,
+      lowStockAlert: 15,
+      createdById: plusOwner.id,
+    },
+  });
+
+  const plusProduct3 = await prisma.product.upsert({
+    where: { tenantId_sku: { tenantId: tenantPlus.id, sku: 'FP-HOD-GRY-L' } },
+    update: {},
+    create: {
+      tenantId: tenantPlus.id,
+      sku: 'FP-HOD-GRY-L',
+      name: 'Sudadera Gris L',
+      slug: 'sudadera-gris-l',
+      description: 'Sudadera con capucha talla L',
+      price: 449.00,
+      costPrice: 180.00,
+      status: 'ACTIVE',
+      stock: 150,
+      trackInventory: true,
+      lowStockAlert: 10,
+      createdById: plusOwner.id,
+    },
+  });
+
+  console.log('✅ Created products for PLUS tenant');
+
+  // 3 branches for PLUS tenant
+  const branchCentro = await prisma.branch.upsert({
+    where: { tenantId_code: { tenantId: tenantPlus.id, code: 'FP-CENTRO' } },
+    update: {},
+    create: {
+      tenantId: tenantPlus.id,
+      name: 'Sucursal Centro',
+      code: 'FP-CENTRO',
+      address: 'Av. Juárez 45',
+      city: 'Ciudad de México',
+      state: 'CDMX',
+      zipCode: '06010',
+      phone: '+52 55 1234 0001',
+      isMain: true,
+      status: 'ACTIVE',
+    },
+  });
+
+  const branchNorte = await prisma.branch.upsert({
+    where: { tenantId_code: { tenantId: tenantPlus.id, code: 'FP-NORTE' } },
+    update: {},
+    create: {
+      tenantId: tenantPlus.id,
+      name: 'Sucursal Norte',
+      code: 'FP-NORTE',
+      address: 'Blvd. Insurgentes Norte 890',
+      city: 'Ciudad de México',
+      state: 'CDMX',
+      zipCode: '07010',
+      phone: '+52 55 1234 0002',
+      isMain: false,
+      status: 'ACTIVE',
+    },
+  });
+
+  const branchSur = await prisma.branch.upsert({
+    where: { tenantId_code: { tenantId: tenantPlus.id, code: 'FP-SUR' } },
+    update: {},
+    create: {
+      tenantId: tenantPlus.id,
+      name: 'Sucursal Sur',
+      code: 'FP-SUR',
+      address: 'Calz. de Tlalpan 2000',
+      city: 'Ciudad de México',
+      state: 'CDMX',
+      zipCode: '14000',
+      phone: '+52 55 1234 0003',
+      isMain: false,
+      status: 'ACTIVE',
+    },
+  });
+
+  console.log('✅ Created 3 branches for PLUS tenant');
+
+  // Branch inventory — different stock per branch per product
+  const branchInventoryData = [
+    // Centro (main)
+    { branchId: branchCentro.id, productId: plusProduct1.id, stock: 80 },
+    { branchId: branchCentro.id, productId: plusProduct2.id, stock: 60 },
+    { branchId: branchCentro.id, productId: plusProduct3.id, stock: 45 },
+    // Norte
+    { branchId: branchNorte.id, productId: plusProduct1.id, stock: 50 },
+    { branchId: branchNorte.id, productId: plusProduct2.id, stock: 35 },
+    { branchId: branchNorte.id, productId: plusProduct3.id, stock: 8 }, // low stock
+    // Sur
+    { branchId: branchSur.id, productId: plusProduct1.id, stock: 30 },
+    { branchId: branchSur.id, productId: plusProduct2.id, stock: 0 }, // out of stock
+    { branchId: branchSur.id, productId: plusProduct3.id, stock: 25 },
+  ];
+
+  for (const inv of branchInventoryData) {
+    await prisma.branchInventory.upsert({
+      where: { branchId_productId: { branchId: inv.branchId, productId: inv.productId } },
+      update: { stock: inv.stock },
+      create: inv,
+    });
+  }
+
+  console.log('✅ Created branch inventory for PLUS tenant (9 records across 3 branches)');
+
+  // Link plusOwner to the main branch
+  await prisma.branchMembership.upsert({
+    where: { branchId_userId: { branchId: branchCentro.id, userId: plusOwner.id } },
+    update: {},
+    create: { branchId: branchCentro.id, userId: plusOwner.id, isPrimary: true },
+  });
+  console.log('✅ Linked plusOwner to Sucursal Centro');
+
   console.log('🎉 Seeding completed!');
 }
 
@@ -517,4 +780,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

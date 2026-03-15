@@ -41,7 +41,8 @@
     "customers": "Clientes",
     "coupons": "Cupones",
     "users": "Usuarios",
-    "roles": "Roles"
+    "roles": "Roles",
+    "branches": "Sucursales"
   },
   "auth": {
     "myAccount": "Mi Cuenta",

@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { TenantContextService } from '../../common/context/tenant-context.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService,
+  ) {}
 
   async getStats() {
+    const tenantId = this.tenantContext.requireTenantId();
+
     const [
       totalOrders,
       totalRevenue,
@@ -15,21 +21,19 @@ export class DashboardService {
       lowStockProducts,
       recentOrders,
     ] = await Promise.all([
-      this.prisma.order.count(),
+      this.prisma.order.count({ where: { tenantId } }),
       this.prisma.order.aggregate({
         _sum: { total: true },
-        where: { paymentStatus: 'PAID' },
+        where: { tenantId, paymentStatus: 'PAID' },
       }),
-      this.prisma.customer.count(),
-      this.prisma.product.count({ where: { status: 'ACTIVE' } }),
-      this.prisma.order.count({ where: { status: 'PENDING' } }),
+      this.prisma.customer.count({ where: { tenantId } }),
+      this.prisma.product.count({ where: { tenantId, status: 'ACTIVE' } }),
+      this.prisma.order.count({ where: { tenantId, status: 'PENDING' } }),
       this.prisma.product.count({
-        where: {
-          trackInventory: true,
-          status: 'ACTIVE',
-        },
+        where: { tenantId, trackInventory: true, status: 'ACTIVE' },
       }),
       this.prisma.order.findMany({
+        where: { tenantId },
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {

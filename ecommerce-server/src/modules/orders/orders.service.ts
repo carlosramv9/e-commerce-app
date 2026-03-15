@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AuditContextService } from '../../common/context/audit-context.service';
+import { TenantContextService } from '../../common/context/tenant-context.service';
 import { PaginatedResponse } from '../../common/dto/pagination.dto';
 import { QueryOrdersDto } from './dto/query-orders.dto';
 import { Order, OrderStatus, Coupon, PaymentStatus } from '@prisma/client';
@@ -12,6 +13,7 @@ export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private auditContext: AuditContextService,
+    private tenantContext: TenantContextService,
     private couponsService: CouponsService,
   ) {}
 
@@ -87,11 +89,14 @@ export class OrdersService {
     const orderNumber = `V-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
     const createdById = this.auditContext.getUserId() ?? null;
+    const tenantId = this.tenantContext.requireTenantId();
+    const branchId = this.tenantContext.getBranchId() ?? null;
 
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
+          tenantId,
           ...(customerId != null && { customerId }),
           ...(addressId != null && { addressId }),
           subtotal,
@@ -105,6 +110,7 @@ export class OrdersService {
           status: (dto.status ?? 'PENDING') as any,
           paymentStatus: (dto.paymentStatus ?? PaymentStatus.PENDING) as any,
           ...(createdById != null && { createdById }),
+          ...(branchId != null && { branchId }),
         },
       });
 
@@ -123,6 +129,16 @@ export class OrdersService {
             total: itemTotal,
           },
         });
+      }
+
+      // Decrement branch inventory if branchId is provided
+      if (branchId) {
+        for (const item of dto.items) {
+          await tx.branchInventory.updateMany({
+            where: { branchId, productId: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
       }
 
       const paymentStatus = (dto.paymentStatus ?? 'PENDING') as any;
@@ -178,91 +194,77 @@ export class OrdersService {
   }
 
   async findAll(query: QueryOrdersDto): Promise<PaginatedResponse<Order>> {
+    const tenantId = this.tenantContext.requireTenantId();
     const { skip, limit, page, customerId, status } = query;
-    const where = {
+
+    const where: any = {
+      tenantId,
       ...(customerId != null && { customerId }),
       ...(status != null && { status }),
     };
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
-        where: Object.keys(where).length > 0 ? where : undefined,
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
           customer: true,
-          items: {
-            include: { product: true },
-          },
+          items: { include: { product: true } },
           payments: true,
         },
       }),
-      this.prisma.order.count({ where: Object.keys(where).length > 0 ? where : undefined }),
+      this.prisma.order.count({ where }),
     ]);
 
     return {
       data: orders,
-      meta: {
-        page: page,
-        limit: limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 
   async findOne(id: string): Promise<Order> {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
+    const tenantId = this.tenantContext.requireTenantId();
+    const order = await this.prisma.order.findFirst({
+      where: { id, tenantId },
       include: {
         customer: true,
         shippingAddress: true,
-        items: {
-          include: { product: true },
-        },
+        items: { include: { product: true } },
         payments: true,
       },
     });
 
-    if (!order) {
-      throw new NotFoundException('Order not found');
-    }
-
+    if (!order) throw new NotFoundException('Order not found');
     return order;
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
-    });
-
-    if (!order) {
-      throw new NotFoundException('Order not found');
-    }
+    const tenantId = this.tenantContext.requireTenantId();
+    const order = await this.prisma.order.findFirst({ where: { id, tenantId } });
+    if (!order) throw new NotFoundException('Order not found');
 
     return this.prisma.order.update({
       where: { id },
       data: { status },
-      include: {
-        customer: true,
-        items: true,
-      },
+      include: { customer: true, items: true },
     });
   }
 
   async getStats() {
+    const tenantId = this.tenantContext.requireTenantId();
+
     const [totalOrders, totalRevenue, pendingOrders, recentOrders] =
       await Promise.all([
-        this.prisma.order.count(),
+        this.prisma.order.count({ where: { tenantId } }),
         this.prisma.order.aggregate({
           _sum: { total: true },
-          where: { paymentStatus: 'PAID' },
+          where: { tenantId, paymentStatus: 'PAID' },
         }),
-        this.prisma.order.count({
-          where: { status: 'PENDING' },
-        }),
+        this.prisma.order.count({ where: { tenantId, status: 'PENDING' } }),
         this.prisma.order.findMany({
+          where: { tenantId },
           take: 10,
           orderBy: { createdAt: 'desc' },
           include: {

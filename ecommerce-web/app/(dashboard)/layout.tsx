@@ -14,13 +14,25 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const tc = useTranslations('common');
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, currentTenant, availableTenants, user } = useAuthStore();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (isLoading) return;
+    if (!isAuthenticated) {
       router.push('/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
+    // Authenticated but tenant not yet resolved → send to picker
+    // (SUPER_ADMIN with no memberships can proceed without a tenant)
+    const needsTenantPicker =
+      !currentTenant &&
+      availableTenants.length > 0 &&
+      user?.role !== 'SUPER_ADMIN';
+
+    if (needsTenantPicker) {
+      router.push('/select-tenant');
+    }
+  }, [isAuthenticated, isLoading, currentTenant, availableTenants, user, router]);
 
   if (isLoading) {
     return (

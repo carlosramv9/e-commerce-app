@@ -4,6 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { TenantContextService } from '../../common/context/tenant-context.service';
 import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
 import { Customer, CustomerStatus, CustomerType } from '@prisma/client';
 import { CreateCustomerDto } from './dto/create-customer.dto';
@@ -11,65 +12,61 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 @Injectable()
 export class CustomersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private tenantContext: TenantContextService,
+  ) {}
 
   async findAll(paginationDto: PaginationDto): Promise<PaginatedResponse<Customer>> {
+    const tenantId = this.tenantContext.requireTenantId();
     const { skip, limit, page } = paginationDto;
+
+    const where = { tenantId };
 
     const [customers, total] = await Promise.all([
       this.prisma.customer.findMany({
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          _count: {
-            select: { orders: true, addresses: true },
-          },
+          _count: { select: { orders: true, addresses: true } },
         },
       }),
-      this.prisma.customer.count(),
+      this.prisma.customer.count({ where }),
     ]);
 
     return {
       data: customers,
-      meta: {
-        page: page,
-        limit: limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 
   async findOne(id: string): Promise<Customer> {
-    const customer = await this.prisma.customer.findUnique({
-      where: { id },
+    const tenantId = this.tenantContext.requireTenantId();
+    const customer = await this.prisma.customer.findFirst({
+      where: { id, tenantId },
       include: {
         addresses: true,
-        orders: {
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-        },
+        orders: { take: 10, orderBy: { createdAt: 'desc' } },
       },
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
-    }
-
+    if (!customer) throw new NotFoundException('Customer not found');
     return customer;
   }
 
   async create(createCustomerDto: CreateCustomerDto): Promise<Customer> {
+    const tenantId = this.tenantContext.requireTenantId();
+
     const existing = await this.prisma.customer.findUnique({
-      where: { email: createCustomerDto.email },
+      where: { tenantId_email: { tenantId, email: createCustomerDto.email } },
     });
-    if (existing) {
-      throw new ConflictException('Email already registered');
-    }
+    if (existing) throw new ConflictException('Email already registered');
 
     return this.prisma.customer.create({
       data: {
+        tenantId,
         email: createCustomerDto.email,
         firstName: createCustomerDto.firstName,
         lastName: createCustomerDto.lastName,
@@ -80,27 +77,17 @@ export class CustomersService {
     });
   }
 
-  async update(
-    id: string,
-    updateCustomerDto: UpdateCustomerDto,
-  ): Promise<Customer> {
-    const customer = await this.prisma.customer.findUnique({
-      where: { id },
-    });
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
-    }
+  async update(id: string, updateCustomerDto: UpdateCustomerDto): Promise<Customer> {
+    const tenantId = this.tenantContext.requireTenantId();
 
-    if (
-      updateCustomerDto.email &&
-      updateCustomerDto.email !== customer.email
-    ) {
+    const customer = await this.prisma.customer.findFirst({ where: { id, tenantId } });
+    if (!customer) throw new NotFoundException('Customer not found');
+
+    if (updateCustomerDto.email && updateCustomerDto.email !== customer.email) {
       const existing = await this.prisma.customer.findUnique({
-        where: { email: updateCustomerDto.email },
+        where: { tenantId_email: { tenantId, email: updateCustomerDto.email } },
       });
-      if (existing) {
-        throw new ConflictException('Email already registered');
-      }
+      if (existing) throw new ConflictException('Email already registered');
     }
 
     return this.prisma.customer.update({

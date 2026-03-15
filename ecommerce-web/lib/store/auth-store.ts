@@ -1,5 +1,7 @@
+'use client';
+
 import { create } from 'zustand';
-import { User, LoginDto, AuthResponse } from '../types';
+import { User, LoginDto, AuthResponse, TenantSummary } from '../types';
 import apiClient from '../api/client';
 
 interface AuthState {
@@ -7,122 +9,127 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  currentTenant: TenantSummary | null;
+  availableTenants: TenantSummary[];
+  currentBranchId: string | null;
 
-  // Actions
-  login: (credentials: LoginDto) => Promise<void>;
+  login: (credentials: LoginDto) => Promise<AuthResponse>;
+  /** Saves tenant selection to DB — no new JWT */
+  selectTenant: (slug: string) => Promise<void>;
   logout: () => void;
   initialize: () => Promise<void>;
   setUser: (user: User) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
   isLoading: true,
+  currentTenant: null,
+  availableTenants: [],
+  currentBranchId: null,
 
   login: async (credentials: LoginDto) => {
-    try {
-      console.log('Auth store - login called with:', credentials);
-      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api');
+    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+    const { user, accessToken, tenant, availableTenants } = response.data;
 
-      const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-      console.log('Auth store - API response:', response.data);
+    localStorage.setItem('token', accessToken);
 
-      const { user, accessToken } = response.data;
+    set({
+      user,
+      token: accessToken,
+      isAuthenticated: true,
+      isLoading: false,
+      currentTenant: tenant ?? null,
+      availableTenants: availableTenants ?? [],
+    });
 
-      // Save to localStorage
-      localStorage.setItem('token', accessToken);
-      localStorage.setItem('user', JSON.stringify(user));
+    return response.data;
+  },
 
-      set({
-        user,
-        token: accessToken,
-        isAuthenticated: true,
-        isLoading: false,
-      });
+  selectTenant: async (slug: string) => {
+    const response = await apiClient.patch<{ tenant: TenantSummary }>(
+      `/auth/select-tenant/${slug}`,
+    );
+    const { tenant } = response.data;
 
-      console.log('Auth store - login successful');
-    } catch (error) {
-      console.error('Auth store - login error:', error);
-
-      set({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
-      throw error;
-    }
+    set((state) => ({
+      currentTenant: tenant,
+      availableTenants: state.availableTenants,
+      currentBranchId: null, // reset branch when changing tenant
+    }));
   },
 
   logout: () => {
-    // Clear localStorage
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
 
     set({
       user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      currentTenant: null,
+      availableTenants: [],
+      currentBranchId: null,
     });
   },
 
   initialize: async () => {
     try {
       const token = localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
-
-      if (!token || !userStr) {
+      if (!token) {
         set({ isLoading: false });
         return;
       }
 
-      // Verify token is still valid by fetching current user
-      const response = await apiClient.get<User>('/auth/me');
-      const user = response.data;
+      const response = await apiClient.get<{
+        user: User;
+        currentTenant?: TenantSummary;
+        currentBranchId?: string;
+      }>('/auth/me');
+
+      const { user, currentTenant, currentBranchId } = response.data;
 
       set({
         user,
         token,
         isAuthenticated: true,
         isLoading: false,
+        currentTenant: currentTenant ?? null,
+        currentBranchId: currentBranchId ?? null,
       });
-    } catch (error) {
-      // Token is invalid, clear everything
+    } catch {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-
       set({
         user: null,
         token: null,
         isAuthenticated: false,
         isLoading: false,
+        currentTenant: null,
+        availableTenants: [],
+        currentBranchId: null,
       });
     }
   },
 
   setUser: (user: User) => {
-    localStorage.setItem('user', JSON.stringify(user));
     set({ user });
   },
 }));
 
-// Helper functions for role-based access
+// ── Role helpers ──────────────────────────────────────────────────────────────
+
 export const isAdmin = (user: User | null): boolean => {
   if (!user) return false;
   return user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
 };
 
 export const isSuperAdmin = (user: User | null): boolean => {
-  if (!user) return false;
-  return user.role === 'SUPER_ADMIN';
+  return user?.role === 'SUPER_ADMIN';
 };
 
-export const canManageUsers = (user: User | null): boolean => {
-  return isAdmin(user);
-};
+export const canManageUsers = (user: User | null): boolean => isAdmin(user);
 
 export const canManageProducts = (user: User | null): boolean => {
   if (!user) return false;

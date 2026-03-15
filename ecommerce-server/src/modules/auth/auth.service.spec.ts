@@ -203,14 +203,18 @@ describe('AuthService', () => {
         password: 'hashed',
         createdAt: new Date(),
         updatedAt: new Date(),
+        lastTenantSelectedId: null,
+        lastBranchSelectedId: null,
+        lastTenantSelected: null,
+        tenantMemberships: [],
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
 
       const result = await service.getProfile(userId);
 
-      expect(result.id).toBe(userId);
-      expect(result.email).toBe(mockUser.email);
+      expect(result.user.id).toBe(userId);
+      expect(result.user.email).toBe(mockUser.email);
     });
 
     it('should throw UnauthorizedException if user not found', async () => {
