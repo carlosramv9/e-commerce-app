@@ -20,10 +20,10 @@ export default function POSLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto" />
-          <p className="mt-4 text-neutral-300">Cargando terminal...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-400 mx-auto" />
+          <p className="mt-4 text-slate-400 text-sm">Cargando terminal...</p>
         </div>
       </div>
     );

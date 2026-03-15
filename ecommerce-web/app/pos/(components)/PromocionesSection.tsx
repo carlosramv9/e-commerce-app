@@ -47,7 +47,7 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
     if (loading) {
         return (
             <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-neutral-300" />
+                <Loader2 className="h-5 w-5 animate-spin text-slate-300" />
             </div>
         );
     }
@@ -55,17 +55,17 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="border-b border-neutral-100 bg-white px-6 py-4 shrink-0">
+            <div className="border-b border-slate-100/80 bg-white/60 backdrop-blur-sm px-6 py-4 shrink-0">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-base font-semibold text-neutral-900">Promociones activas</h2>
-                        <p className="text-xs text-neutral-400 mt-0.5">
+                        <h2 className="text-base font-semibold text-slate-800">Promociones activas</h2>
+                        <p className="text-xs text-slate-400 mt-0.5">
                             {coupons.length} cupón{coupons.length !== 1 ? 'es' : ''} disponible{coupons.length !== 1 ? 's' : ''} hoy
                         </p>
                     </div>
                     <button
                         onClick={onApply}
-                        className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors border border-blue-100"
+                        className="flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100/80 hover:bg-slate-200/60 px-3 py-1.5 rounded-lg transition-colors border border-slate-200/60"
                     >
                         <Tag className="h-3.5 w-3.5" />
                         Aplicar cupón
@@ -77,10 +77,10 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
             <div className="flex-1 overflow-y-auto px-6 py-4">
                 {coupons.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center">
-                            <Tag className="h-6 w-6 text-neutral-300" />
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center">
+                            <Tag className="h-6 w-6 text-slate-300" />
                         </div>
-                        <p className="text-sm font-medium text-neutral-400">
+                        <p className="text-sm font-medium text-slate-400">
                             No hay promociones activas hoy
                         </p>
                     </div>
@@ -99,22 +99,14 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
                             return (
                                 <div
                                     key={coupon.id}
-                                    className="bg-white rounded-xl border border-neutral-100 overflow-hidden"
+                                    className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200/60 overflow-hidden"
                                 >
                                     {/* Top stripe */}
-                                    <div
-                                        className={`h-0.5 ${isPercent ? 'bg-purple-400' : 'bg-emerald-400'}`}
-                                    />
+                                    <div className="h-0.5 bg-slate-300/60" />
 
                                     <div className="px-4 py-3.5 flex items-start gap-3">
                                         {/* Icon */}
-                                        <div
-                                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
-                                                isPercent
-                                                    ? 'bg-purple-50 border-purple-100 text-purple-500'
-                                                    : 'bg-emerald-50 border-emerald-100 text-emerald-500'
-                                            }`}
-                                        >
+                                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border bg-slate-100/80 border-slate-200/60 text-slate-500">
                                             <ValueIcon className="h-4 w-4" />
                                         </div>
 
@@ -122,20 +114,16 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
                                                 <div>
-                                                    <p className="font-mono font-bold text-sm text-neutral-900 tracking-wider">
+                                                    <p className="font-mono font-bold text-sm text-slate-800 tracking-wider">
                                                         {coupon.code}
                                                     </p>
                                                     {coupon.description && (
-                                                        <p className="text-xs text-neutral-500 mt-0.5">
+                                                        <p className="text-xs text-slate-500 mt-0.5">
                                                             {coupon.description}
                                                         </p>
                                                     )}
                                                 </div>
-                                                <p
-                                                    className={`font-bold text-base shrink-0 ${
-                                                        isPercent ? 'text-purple-600' : 'text-emerald-600'
-                                                    }`}
-                                                >
+                                                <p className="font-bold text-base shrink-0 text-slate-700">
                                                     {isPercent
                                                         ? `${Number(coupon.value)}% OFF`
                                                         : `−${currencyFormatter.format(Number(coupon.value))}`}
@@ -144,22 +132,22 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
 
                                             {/* Meta pills */}
                                             <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
-                                                <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+                                                <span className="text-[11px] text-slate-400 flex items-center gap-1">
                                                     <ScopeIcon className="h-3 w-3" />
                                                     {scope.label}
                                                 </span>
                                                 {coupon.minPurchase && (
-                                                    <span className="text-[11px] text-neutral-400">
+                                                    <span className="text-[11px] text-slate-400">
                                                         Mín. {currencyFormatter.format(Number(coupon.minPurchase))}
                                                     </span>
                                                 )}
                                                 {coupon.maxDiscount && isPercent && (
-                                                    <span className="text-[11px] text-neutral-400">
+                                                    <span className="text-[11px] text-slate-400">
                                                         Máx. {currencyFormatter.format(Number(coupon.maxDiscount))}
                                                     </span>
                                                 )}
                                                 {coupon.endDate && (
-                                                    <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+                                                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
                                                         Vence{' '}
                                                         {new Date(coupon.endDate).toLocaleDateString('es-MX', {
                                                             day: 'numeric',
@@ -168,7 +156,7 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
                                                     </span>
                                                 )}
                                                 {coupon.customerTypes?.length > 0 && (
-                                                    <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+                                                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
                                                         <Users className="h-3 w-3" />
                                                         {coupon.customerTypes.join(', ')}
                                                     </span>
@@ -178,17 +166,13 @@ export default function PromocionesSection({ onApply }: PromocionesSectionProps)
                                             {/* Usage bar */}
                                             {usagePct !== null && (
                                                 <div className="mt-2">
-                                                    <div className="h-1 bg-neutral-100 rounded-full overflow-hidden">
+                                                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                                                         <div
-                                                            className={`h-full rounded-full transition-all ${
-                                                                usagePct > 80
-                                                                    ? 'bg-amber-400'
-                                                                    : 'bg-emerald-400'
-                                                            }`}
+                                                            className="h-full rounded-full transition-all bg-slate-400"
                                                             style={{ width: `${usagePct}%` }}
                                                         />
                                                     </div>
-                                                    <p className="text-[10px] text-neutral-400 mt-0.5">
+                                                    <p className="text-[10px] text-slate-400 mt-0.5">
                                                         {coupon.usageCount}/{coupon.usageLimit} usos
                                                     </p>
                                                 </div>

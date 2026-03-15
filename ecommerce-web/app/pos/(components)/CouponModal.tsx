@@ -67,13 +67,13 @@ const CouponModal = ({
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
             <DialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
-                <DialogHeader className="px-5 pt-5 pb-4 border-b border-neutral-100">
+                <DialogHeader className="px-5 pt-5 pb-4 border-b border-white/40">
                     <DialogTitle className="text-base font-semibold">Cupones de Descuento</DialogTitle>
                 </DialogHeader>
 
                 {/* Add coupon */}
-                <div className="px-4 py-4 border-b border-neutral-100">
-                    <label className="block text-xs font-medium text-neutral-600 mb-2">
+                <div className="px-4 py-4 border-b border-white/40">
+                    <label className="block text-xs font-medium text-slate-600 mb-2">
                         Agregar código de cupón
                     </label>
                     <div className="flex gap-2">
@@ -82,7 +82,7 @@ const CouponModal = ({
                             value={code}
                             onChange={(e) => setCode(e.target.value.toUpperCase())}
                             onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
-                            className="h-10 font-mono uppercase text-sm border-neutral-200"
+                            className="h-10 font-mono uppercase text-sm border-white/50 bg-white/60 focus:ring-slate-300/60"
                             autoFocus
                         />
                         <Button
@@ -102,12 +102,12 @@ const CouponModal = ({
                 {/* Applied coupons list */}
                 <div className="px-4 py-3 min-h-[80px]">
                     {appliedCoupons.length === 0 ? (
-                        <div className="flex items-center justify-center py-6 text-sm text-neutral-400">
+                        <div className="flex items-center justify-center py-6 text-sm text-slate-400">
                             No hay cupones aplicados
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            <p className="text-xs font-medium text-neutral-500 mb-2">Cupones aplicados</p>
+                            <p className="text-xs font-medium text-slate-600 mb-2">Cupones aplicados</p>
                             {appliedCoupons.map((coupon) => (
                                 <div
                                     key={coupon.code}
@@ -138,7 +138,7 @@ const CouponModal = ({
                     )}
                 </div>
 
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-4 bg-white/20 backdrop-blur-sm">
                     <Button variant="outline" className="w-full" onClick={onClose}>
                         Listo
                     </Button>

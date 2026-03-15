@@ -124,3 +124,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Glass design tokens ───────────────────────────────────── */
+@layer utilities {
+  .glass { @apply bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-900/5 rounded-2xl; }
+  .glass-sm { @apply bg-white/60 backdrop-blur-md border border-white/50 shadow-md shadow-slate-900/5 rounded-xl; }
+  .glass-header { @apply px-6 pt-6 pb-4 border-b border-slate-100/80; }
+  .glass-content { @apply p-6; }
+  .glass-footer { @apply px-6 py-4 bg-slate-50/60 border-t border-slate-100/80; }
+  .glass-row { @apply border-b border-slate-100/60 transition-colors hover:bg-white/60; }
+  .label-xs { @apply text-slate-600 text-xs font-semibold uppercase tracking-wide; }
+}

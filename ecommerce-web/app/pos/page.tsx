@@ -251,14 +251,14 @@ export default function POSPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-[#fdfcfb]">
+    <div className="h-screen flex overflow-hidden bg-slate-50">
       {/* POS Sidebar */}
       <POSSidebar
         activeSection={activeSection}
@@ -274,22 +274,22 @@ export default function POSPage() {
         {activeSection === 'cobrar' && (
           <>
             {/* Search & Filters */}
-            <div className="border-b border-neutral-200 bg-white px-4 md:px-6 py-3 md:py-4 shrink-0">
+            <div className="border-b border-slate-200/60 bg-white/60 backdrop-blur-sm px-4 md:px-6 py-3 md:py-4 shrink-0">
               <div className="flex gap-2 md:gap-3">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
                     placeholder="Buscar producto..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 h-10 md:h-11 border-neutral-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-10 h-10 md:h-11 bg-white/60 border-slate-200/80"
                   />
                 </div>
                 <Select
                   value={categoryFilter || 'all'}
                   onValueChange={(value) => setCategoryFilter(value === 'all' ? '' : value)}
                 >
-                  <SelectTrigger className="w-32 md:w-48 h-10 md:h-11 border-neutral-300">
+                  <SelectTrigger className="w-32 md:w-48 h-10 md:h-11 bg-white/60 border-slate-200/80">
                     <SelectValue placeholder="Categoría" />
                   </SelectTrigger>
                   <SelectContent>
@@ -318,7 +318,7 @@ export default function POSPage() {
                 </div>
                 {products.length === 0 && !isPending && (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-neutral-400 text-sm">No se encontraron productos</p>
+                    <p className="text-slate-400 text-sm">No se encontraron productos</p>
                   </div>
                 )}
               </div>

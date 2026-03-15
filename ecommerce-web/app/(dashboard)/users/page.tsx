@@ -108,7 +108,7 @@ export default function UsersPage() {
   const getStatusBadge = (status: UserStatus) => {
     const variants: Record<UserStatus, { label: string; className: string }> = {
       ACTIVE: { label: tc('statusActive'), className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      INACTIVE: { label: tc('statusInactive'), className: 'bg-slate-100 text-slate-800' },
       SUSPENDED: { label: tc('statusSuspended'), className: 'bg-red-100 text-red-800' },
     };
     const v = variants[status];
@@ -180,7 +180,7 @@ export default function UsersPage() {
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">{t('noResults')}</p>
+              <p className="text-slate-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
@@ -201,7 +201,7 @@ export default function UsersPage() {
                       <TableCell className="font-medium">
                         {user.firstName} {user.lastName}
                       </TableCell>
-                      <TableCell className="text-gray-600">{user.email}</TableCell>
+                      <TableCell className="text-slate-600">{user.email}</TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>{getStatusBadge(user.status)}</TableCell>
                       <TableCell>
@@ -216,7 +216,7 @@ export default function UsersPage() {
                               {user._count!.roleAssignments}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-slate-400">—</span>
                           )}
                           {/* Extra permissions count */}
                           {(user._count?.permissionGrants ?? 0) > 0 && (
@@ -262,7 +262,7 @@ export default function UsersPage() {
 
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   {tc('page', { current: page, total: totalPages })}
                 </p>
                 <div className="flex gap-2">

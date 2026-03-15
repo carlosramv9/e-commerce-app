@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { User } from '@/lib/types';
 
@@ -68,7 +67,6 @@ export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: Use
   });
 
   const handleFormSubmit = async (data: UserFormValues) => {
-    // Remove password if empty (for updates)
     if (user && !data.password) {
       const { password, ...restData } = data;
       await onSubmit(restData as UserFormValues);
@@ -79,21 +77,31 @@ export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: Use
 
   return (
     <Form {...form}>
-      <form id={formId} onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <form id={formId} onSubmit={form.handleSubmit(handleFormSubmit)}>
+        {/* Glass card */}
+        <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-900/5 rounded-2xl overflow-hidden">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4 border-b border-slate-100/80">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.title')}</h3>
+          </div>
+
+          {/* Fields */}
+          <div className="px-6 py-5 space-y-5">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.firstName')} *</FormLabel>
+                    <FormLabel className="text-slate-600 text-xs font-semibold uppercase tracking-wide">
+                      {t('form.firstName')} *
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder={t('form.firstNamePlaceholder')} {...field} />
+                      <Input
+                        placeholder={t('form.firstNamePlaceholder')}
+                        className="bg-white/60 border-slate-200/80 focus:bg-white focus:border-indigo-300 transition-colors"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,9 +113,15 @@ export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: Use
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.lastName')} *</FormLabel>
+                    <FormLabel className="text-slate-600 text-xs font-semibold uppercase tracking-wide">
+                      {t('form.lastName')} *
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder={t('form.lastNamePlaceholder')} {...field} />
+                      <Input
+                        placeholder={t('form.lastNamePlaceholder')}
+                        className="bg-white/60 border-slate-200/80 focus:bg-white focus:border-indigo-300 transition-colors"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -120,9 +134,16 @@ export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: Use
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('form.email')} *</FormLabel>
+                  <FormLabel className="text-slate-600 text-xs font-semibold uppercase tracking-wide">
+                    {t('form.email')} *
+                  </FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t('form.emailPlaceholder')} {...field} />
+                    <Input
+                      type="email"
+                      placeholder={t('form.emailPlaceholder')}
+                      className="bg-white/60 border-slate-200/80 focus:bg-white focus:border-indigo-300 transition-colors"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,27 +155,66 @@ export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: Use
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{user ? t('form.passwordEdit') : t('form.passwordCreate')}</FormLabel>
+                  <FormLabel className="text-slate-600 text-xs font-semibold uppercase tracking-wide">
+                    {user ? t('form.passwordEdit') : t('form.passwordCreate')}
+                  </FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      className="bg-white/60 border-slate-200/80 focus:bg-white focus:border-indigo-300 transition-colors"
+                      {...field}
+                    />
                   </FormControl>
                   {user && (
-                    <FormDescription>{t('form.passwordDescription')}</FormDescription>
+                    <FormDescription className="text-slate-400 text-xs">
+                      {t('form.passwordDescription')}
+                    </FormDescription>
                   )}
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-600 text-xs font-semibold uppercase tracking-wide">
+                      {t('form.role')} *
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-white/60 border-slate-200/80 focus:border-indigo-300">
+                          <SelectValue placeholder={t('form.rolePlaceholder')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                        <SelectItem value="MANAGER">Manager</SelectItem>
+                        <SelectItem value="STAFF">Staff</SelectItem>
+                        <SelectItem value="CASHIER">{t('roleCashier')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('form.status')} *</FormLabel>
+                    <FormLabel className="text-slate-600 text-xs font-semibold uppercase tracking-wide">
+                      {t('form.status')} *
+                    </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white/60 border-slate-200/80 focus:border-indigo-300">
                           <SelectValue placeholder={t('form.statusPlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
@@ -168,17 +228,22 @@ export function UserForm({ user, onSubmit, isLoading, hideActions, formId }: Use
                   </FormItem>
                 )}
               />
-          </CardContent>
-        </Card>
-
-        {!hideActions && (
-          <div className="flex justify-end gap-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {user ? t('form.submitUpdate') : t('form.submitCreate')}
-            </Button>
+            </div>
           </div>
-        )}
+
+          {!hideActions && (
+            <div className="px-6 py-4 bg-slate-50/60 border-t border-slate-100/80 flex justify-end">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20"
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {user ? t('form.submitUpdate') : t('form.submitCreate')}
+              </Button>
+            </div>
+          )}
+        </div>
       </form>
     </Form>
   );

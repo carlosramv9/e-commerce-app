@@ -28,7 +28,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 bg-white/70 backdrop-blur-xl border-b border-white/60 shadow-sm px-6">
       <div className="flex flex-1 items-center justify-end gap-2">
         <LocaleSwitcher />
         <DropdownMenu>
@@ -43,11 +43,11 @@ export function Header() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>{t('myAccount')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-gray-600">
+            <DropdownMenuItem className="text-slate-600">
               <User className="mr-2 h-4 w-4" />
               <span>{user?.email}</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-gray-600">
+            <DropdownMenuItem className="text-slate-600">
               <span className="mr-2 h-4 w-4" />
               <span>{t('role')}: {user?.role}</span>
             </DropdownMenuItem>

@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { Customer } from '@/lib/types';
 
@@ -95,13 +94,11 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
         className="flex flex-col gap-8 max-w-2xl mx-auto"
       >
         {/* Personal Information */}
-        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
-          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('form.personalInfo')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="label-xs">{t('form.personalInfo')}</h3>
+          </div>
+          <div className="glass-content space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -182,17 +179,15 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Classification */}
-        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
-          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('form.classification')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="label-xs">{t('form.classification')}</h3>
+          </div>
+          <div className="glass-content space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -251,19 +246,17 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
                 )}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit */}
-        <div className="flex flex-col items-end gap-3 pt-2 border-t border-border/60">
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="min-w-[180px] h-11 font-medium"
-          >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {customer ? t('form.submitUpdate') : t('form.submitCreate')}
-          </Button>
+          </div>
+          <div className="glass-footer flex justify-end">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="min-w-[180px] h-11 font-medium"
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {customer ? t('form.submitUpdate') : t('form.submitCreate')}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

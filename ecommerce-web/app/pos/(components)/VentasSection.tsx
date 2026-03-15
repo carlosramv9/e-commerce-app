@@ -7,10 +7,10 @@ import { Loader2, ReceiptText, Clock3, TrendingUp } from 'lucide-react';
 import { currencyFormatter } from '@/lib/utils';
 
 const PAYMENT_STATUS: Record<string, { label: string; cls: string }> = {
-    PAID:     { label: 'Pagado',    cls: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    PENDING:  { label: 'Pendiente', cls: 'text-amber-600  bg-amber-50  border-amber-200'  },
-    REFUNDED: { label: 'Devuelto',  cls: 'text-red-500    bg-red-50    border-red-200'    },
-    FAILED:   { label: 'Fallido',   cls: 'text-red-500    bg-red-50    border-red-200'    },
+    PAID:     { label: 'Pagado',    cls: 'text-emerald-700 bg-emerald-50/80 border-emerald-200/80' },
+    PENDING:  { label: 'Pendiente', cls: 'text-amber-700  bg-amber-50/80  border-amber-200/80'  },
+    REFUNDED: { label: 'Devuelto',  cls: 'text-slate-600  bg-slate-100    border-slate-200'    },
+    FAILED:   { label: 'Fallido',   cls: 'text-red-600    bg-red-50/80    border-red-200/80'    },
 };
 
 const METHOD_LABEL: Record<string, string> = {
@@ -56,7 +56,7 @@ export default function VentasSection() {
     if (loading) {
         return (
             <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-neutral-300" />
+                <Loader2 className="h-5 w-5 animate-spin text-slate-300" />
             </div>
         );
     }
@@ -64,11 +64,11 @@ export default function VentasSection() {
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="border-b border-neutral-100 bg-white px-6 py-4 shrink-0">
+            <div className="border-b border-slate-100/80 bg-white/60 backdrop-blur-sm px-6 py-4 shrink-0">
                 <div className="flex items-start justify-between mb-4">
                     <div>
-                        <h2 className="text-base font-semibold text-neutral-900">Mis ventas de hoy</h2>
-                        <p className="text-xs text-neutral-400 mt-0.5 capitalize">
+                        <h2 className="text-base font-semibold text-slate-800">Mis ventas de hoy</h2>
+                        <p className="text-xs text-slate-400 mt-0.5 capitalize">
                             {new Date().toLocaleDateString('es-MX', {
                                 weekday: 'long',
                                 day: 'numeric',
@@ -77,8 +77,8 @@ export default function VentasSection() {
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs text-neutral-400">Total cobrado</p>
-                        <p className="text-xl font-bold font-mono text-neutral-900 tabular-nums">
+                        <p className="text-xs text-slate-400">Total cobrado</p>
+                        <p className="text-xl font-bold font-mono text-slate-800 tabular-nums">
                             {currencyFormatter.format(totalPaid)}
                         </p>
                     </div>
@@ -86,15 +86,15 @@ export default function VentasSection() {
 
                 {/* Summary pills */}
                 <div className="grid grid-cols-3 gap-2.5">
-                    <div className="bg-neutral-50 rounded-xl px-3 py-2.5 text-center border border-neutral-100">
-                        <p className="text-lg font-bold text-neutral-900 tabular-nums">{orders.length}</p>
-                        <p className="text-[11px] text-neutral-500 mt-0.5">Total ventas</p>
+                    <div className="bg-white/60 rounded-xl px-3 py-2.5 text-center border border-slate-200/60">
+                        <p className="text-lg font-bold text-slate-800 tabular-nums">{orders.length}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Total ventas</p>
                     </div>
-                    <div className="bg-emerald-50 rounded-xl px-3 py-2.5 text-center border border-emerald-100">
+                    <div className="bg-emerald-50/60 rounded-xl px-3 py-2.5 text-center border border-emerald-200/60">
                         <p className="text-lg font-bold text-emerald-700 tabular-nums">{paidCount}</p>
                         <p className="text-[11px] text-emerald-600 mt-0.5">Pagadas</p>
                     </div>
-                    <div className="bg-amber-50 rounded-xl px-3 py-2.5 text-center border border-amber-100">
+                    <div className="bg-amber-50/60 rounded-xl px-3 py-2.5 text-center border border-amber-200/60">
                         <p className="text-lg font-bold text-amber-700 tabular-nums">{pendingCount}</p>
                         <p className="text-[11px] text-amber-600 mt-0.5">Pendientes</p>
                     </div>
@@ -105,13 +105,13 @@ export default function VentasSection() {
             <div className="flex-1 overflow-y-auto px-6 py-4">
                 {orders.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-                        <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center">
-                            <TrendingUp className="h-6 w-6 text-neutral-300" />
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center">
+                            <TrendingUp className="h-6 w-6 text-slate-300" />
                         </div>
-                        <p className="text-sm font-medium text-neutral-400">
+                        <p className="text-sm font-medium text-slate-400">
                             Aún no hay ventas registradas hoy
                         </p>
-                        <p className="text-xs text-neutral-300">
+                        <p className="text-xs text-slate-300">
                             Tus ventas del día aparecerán aquí
                         </p>
                     </div>
@@ -121,7 +121,7 @@ export default function VentasSection() {
                             const status =
                                 PAYMENT_STATUS[order.paymentStatus] ?? {
                                     label: order.paymentStatus,
-                                    cls: 'text-neutral-500 bg-neutral-100 border-neutral-200',
+                                    cls: 'text-slate-500 bg-slate-100 border-slate-200',
                                 };
                             const time = new Date(order.createdAt).toLocaleTimeString('es-MX', {
                                 hour: '2-digit',
@@ -141,14 +141,14 @@ export default function VentasSection() {
                             return (
                                 <div
                                     key={order.id}
-                                    className="bg-white rounded-xl border border-neutral-100 px-4 py-3 flex items-center gap-3 hover:border-neutral-200 transition-colors"
+                                    className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200/60 px-4 py-3 flex items-center gap-3 hover:bg-white/80 hover:border-slate-300/60 transition-colors"
                                 >
-                                    <div className="w-9 h-9 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center justify-center shrink-0">
-                                        <ReceiptText className="h-[17px] w-[17px] text-neutral-300" />
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center shrink-0">
+                                        <ReceiptText className="h-[17px] w-[17px] text-slate-400" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <p className="text-sm font-semibold text-neutral-900 font-mono tracking-tight">
+                                            <p className="text-sm font-semibold text-slate-800 font-mono tracking-tight">
                                                 {order.orderNumber}
                                             </p>
                                             <span
@@ -157,7 +157,7 @@ export default function VentasSection() {
                                                 {status.label}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-neutral-400 mt-0.5 truncate">
+                                        <p className="text-xs text-slate-400 mt-0.5 truncate">
                                             {order.customer
                                                 ? `${order.customer.firstName} ${order.customer.lastName}`
                                                 : 'Público general'}{' '}
@@ -165,10 +165,10 @@ export default function VentasSection() {
                                         </p>
                                     </div>
                                     <div className="text-right shrink-0">
-                                        <p className="text-sm font-bold font-mono text-neutral-900 tabular-nums">
+                                        <p className="text-sm font-bold font-mono text-slate-800 tabular-nums">
                                             {currencyFormatter.format(Number(order.total))}
                                         </p>
-                                        <p className="text-[11px] text-neutral-400 flex items-center gap-0.5 justify-end mt-0.5">
+                                        <p className="text-[11px] text-slate-400 flex items-center gap-0.5 justify-end mt-0.5">
                                             <Clock3 className="h-3 w-3" />
                                             {time}
                                         </p>

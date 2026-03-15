@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { categoriesApi } from '@/lib/api/categories';
 import { Category, Product } from '@/lib/types';
@@ -143,13 +142,11 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
         className="flex flex-col gap-8 max-w-3xl mx-auto"
       >
         {/* Basic Information */}
-        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
-          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('form.basicInfo')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="label-xs">{t('form.basicInfo')}</h3>
+          </div>
+          <div className="glass-content space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -274,17 +271,15 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Pricing */}
-        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
-          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('form.pricing')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="label-xs">{t('form.pricing')}</h3>
+          </div>
+          <div className="glass-content space-y-5">
             <div className="grid gap-5 sm:grid-cols-3">
               <FormField
                 control={form.control}
@@ -398,17 +393,15 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Inventory */}
-        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
-          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('form.inventory')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="label-xs">{t('form.inventory')}</h3>
+          </div>
+          <div className="glass-content space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -458,17 +451,15 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 )}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* SEO */}
-        <Card className="border-border/80 bg-card shadow-xs rounded-xl overflow-hidden gap-0">
-          <CardHeader className="pb-4 border-b border-border/60 bg-muted/20">
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('form.seo')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-5">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="label-xs">{t('form.seo')}</h3>
+          </div>
+          <div className="glass-content space-y-5">
             <FormField
               control={form.control}
               name="metaTitle"
@@ -505,19 +496,17 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
-
-        {/* Submit */}
-        <div className="flex flex-col items-end gap-3 pt-2 border-t border-border/60">
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="min-w-[180px] h-11 font-medium"
-          >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {product ? t('form.submitUpdate') : t('form.submitCreate')}
-          </Button>
+          </div>
+          <div className="glass-footer flex justify-end">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="min-w-[180px] h-11 font-medium"
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {product ? t('form.submitUpdate') : t('form.submitCreate')}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

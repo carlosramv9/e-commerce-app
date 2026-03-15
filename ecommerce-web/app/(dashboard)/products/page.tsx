@@ -119,7 +119,7 @@ export default function ProductsPage() {
   const getStatusBadge = (status: ProductStatus) => {
     const variants: Record<ProductStatus, { label: string; className: string }> = {
       ACTIVE: { label: tc('statusActive'), className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      INACTIVE: { label: tc('statusInactive'), className: 'bg-slate-100 text-slate-800' },
       DRAFT: { label: t('statusDraft'), className: 'bg-yellow-100 text-yellow-800' },
       ARCHIVED: { label: t('statusArchived'), className: 'bg-red-100 text-red-800' },
     };
@@ -150,7 +150,7 @@ export default function ProductsPage() {
         <CardContent className="p-6">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <Input
                 placeholder={t('searchPlaceholder')}
                 value={search}
@@ -200,7 +200,7 @@ export default function ProductsPage() {
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">{t('noResults')}</p>
+              <p className="text-slate-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
@@ -259,7 +259,7 @@ export default function ProductsPage() {
 
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-slate-500">
                   {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">

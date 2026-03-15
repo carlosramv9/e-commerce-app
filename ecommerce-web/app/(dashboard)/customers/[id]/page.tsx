@@ -82,7 +82,7 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ id: 
   const getStatusBadge = (status: CustomerStatus) => {
     const variants: Record<CustomerStatus, { label: string; className: string }> = {
       ACTIVE: { label: tc('statusActive'), className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: tc('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      INACTIVE: { label: tc('statusInactive'), className: 'bg-slate-100 text-slate-800' },
       BLOCKED: { label: tc('statusBlocked'), className: 'bg-red-100 text-red-800' },
     };
 
@@ -159,19 +159,19 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ id: 
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-5 w-5 text-slate-400" />
                 <div>
                   <p className="text-sm font-medium">{t('detail.email')}</p>
-                  <p className="text-sm text-gray-600">{customer.email}</p>
+                  <p className="text-sm text-slate-600">{customer.email}</p>
                 </div>
               </div>
 
               {customer.phone && (
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-gray-400" />
+                  <Phone className="h-5 w-5 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium">{t('detail.phone')}</p>
-                    <p className="text-sm text-gray-600">{customer.phone}</p>
+                    <p className="text-sm text-slate-600">{customer.phone}</p>
                   </div>
                 </div>
               )}
@@ -180,11 +180,11 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ id: 
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{t('detail.type')}</span>
+                  <span className="text-sm text-slate-600">{t('detail.type')}</span>
                   {getTypeBadge(customer.type)}
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{t('detail.status')}</span>
+                  <span className="text-sm text-slate-600">{t('detail.status')}</span>
                   {getStatusBadge(customer.status)}
                 </div>
               </div>
@@ -197,15 +197,15 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ id: 
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('detail.totalOrders')}</span>
+                <span className="text-sm text-slate-600">{t('detail.totalOrders')}</span>
                 <span className="font-bold">{customer.totalOrders || 0}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('detail.totalSpent')}</span>
+                <span className="text-sm text-slate-600">{t('detail.totalSpent')}</span>
                 <span className="font-bold">{formatCurrency(customer.totalSpent || 0)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">{t('detail.avgOrder')}</span>
+                <span className="text-sm text-slate-600">{t('detail.avgOrder')}</span>
                 <span className="font-bold">{formatCurrency(averageOrderValue)}</span>
               </div>
             </CardContent>
@@ -224,12 +224,12 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ id: 
                 {customer.addresses.map((address) => (
                   <div key={address.id} className="text-sm space-y-1">
                     <p className="font-medium">{address.label || 'Principal'}</p>
-                    <p className="text-gray-600">{address.street}</p>
-                    <p className="text-gray-600">
+                    <p className="text-slate-600">{address.street}</p>
+                    <p className="text-slate-600">
                       {address.city}, {address.state}
                     </p>
-                    <p className="text-gray-600">{address.postalCode}</p>
-                    <p className="text-gray-600">{address.country}</p>
+                    <p className="text-slate-600">{address.postalCode}</p>
+                    <p className="text-slate-600">{address.country}</p>
                   </div>
                 ))}
               </CardContent>
@@ -245,7 +245,7 @@ export default function CustomerDetailsPage({ params }: { params: Promise<{ id: 
             </CardHeader>
             <CardContent>
               {orders.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-slate-500">
                   {t('detail.noOrders')}
                 </div>
               ) : (

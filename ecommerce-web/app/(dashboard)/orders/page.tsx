@@ -135,7 +135,7 @@ export default function OrdersPage() {
             </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">{t('noResults')}</p>
+              <p className="text-slate-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
@@ -159,7 +159,7 @@ export default function OrdersPage() {
                         {order.customer ? (
                           <>
                             {order.customer.firstName} {order.customer.lastName}
-                            <div className="text-sm text-gray-500">{order.customer.email}</div>
+                            <div className="text-sm text-slate-500">{order.customer.email}</div>
                           </>
                         ) : (
                           '-'
@@ -167,7 +167,7 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>
                         {format(new Date(order.createdAt), 'dd MMM yyyy', { locale: es })}
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-slate-500">
                           {format(new Date(order.createdAt), 'HH:mm', { locale: es })}
                         </div>
                       </TableCell>
@@ -191,7 +191,7 @@ export default function OrdersPage() {
 
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-slate-500">
                   {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">

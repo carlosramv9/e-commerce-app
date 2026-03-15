@@ -18,17 +18,17 @@ const CartItemRow = ({
     );
 
     return (
-        <div className="border border-neutral-200 rounded-lg p-2.5 md:p-3 bg-white">
+        <div className="border border-slate-200/60 rounded-xl p-2.5 md:p-3 bg-white/60">
             <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 pr-2">
-                    <h4 className="text-xs md:text-sm font-medium text-neutral-900 leading-tight line-clamp-1">
+                    <h4 className="text-xs md:text-sm font-medium text-slate-800 leading-tight line-clamp-1">
                         {item.product.name}
                     </h4>
-                    <p className="text-[10px] md:text-xs font-mono text-neutral-500 mt-0.5">{item.product.sku}</p>
+                    <p className="text-[10px] md:text-xs font-mono text-slate-400 mt-0.5">{item.product.sku}</p>
                 </div>
                 <button
                     onClick={() => onRemove(item.product.id)}
-                    className="text-neutral-400 hover:text-red-600 transition-colors p-1 touch-manipulation"
+                    className="text-slate-300 hover:text-slate-600 transition-colors p-1 touch-manipulation"
                 >
                     <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </button>
@@ -37,21 +37,21 @@ const CartItemRow = ({
                 <div className="flex items-center gap-1.5 md:gap-2">
                     <button
                         onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
-                        className="w-7 h-7 md:w-8 md:h-8 rounded border border-neutral-300 flex items-center justify-center hover:bg-neutral-50 active:bg-neutral-100 transition-colors touch-manipulation"
+                        className="w-7 h-7 md:w-8 md:h-8 rounded-lg border border-slate-200/80 flex items-center justify-center hover:bg-slate-100/60 active:bg-slate-200/60 transition-colors touch-manipulation text-slate-500"
                     >
                         <Minus className="h-3 w-3 md:h-3.5 md:w-3.5" />
                     </button>
-                    <span className="w-8 md:w-10 text-center font-mono font-bold text-sm md:text-base text-neutral-900">
+                    <span className="w-8 md:w-10 text-center font-mono font-bold text-sm md:text-base text-slate-800">
                         {item.quantity}
                     </span>
                     <button
                         onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
-                        className="w-7 h-7 md:w-8 md:h-8 rounded border border-neutral-300 flex items-center justify-center hover:bg-neutral-50 active:bg-neutral-100 transition-colors touch-manipulation"
+                        className="w-7 h-7 md:w-8 md:h-8 rounded-lg border border-slate-200/80 flex items-center justify-center hover:bg-slate-100/60 active:bg-slate-200/60 transition-colors touch-manipulation text-slate-500"
                     >
                         <Plus className="h-3 w-3 md:h-3.5 md:w-3.5" />
                     </button>
                 </div>
-                <p className="font-mono font-bold text-sm md:text-base text-neutral-900">
+                <p className="font-mono font-bold text-sm md:text-base text-slate-800">
                     {itemTotal}
                 </p>
             </div>

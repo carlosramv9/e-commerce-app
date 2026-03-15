@@ -70,7 +70,7 @@ export default function DashboardPage() {
       DELIVERED: 'bg-green-100 text-green-800',
       CANCELLED: 'bg-red-100 text-red-800',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'bg-slate-100 text-slate-800';
   };
 
   const getStatusLabel = (status: string) => {
@@ -135,7 +135,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="text-sm text-slate-500 text-center py-4">
                 {td('noRecentOrders')}
               </p>
             ) : (
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {lowStockProducts.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="text-sm text-slate-500 text-center py-4">
                 {td('noLowStock')}
               </p>
             ) : (

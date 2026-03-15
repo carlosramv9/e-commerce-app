@@ -84,7 +84,7 @@ export default function RolesPage() {
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-xl bg-neutral-100 animate-pulse" />
+            <div key={i} className="h-40 rounded-2xl bg-white/40 animate-pulse" />
           ))}
         </div>
       ) : (
@@ -138,7 +138,7 @@ function RoleCard({
   const color = role.color ?? '#6366f1';
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:border-neutral-300 transition-colors">
+    <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-900/5 rounded-2xl overflow-hidden hover:border-white/80 transition-colors">
       {/* Color stripe */}
       <div className="h-1" style={{ backgroundColor: color }} />
 
@@ -153,11 +153,11 @@ function RoleCard({
               <Shield className="h-4.5 w-4.5" style={{ color }} />
             </div>
             <div>
-              <p className="font-semibold text-neutral-900 text-sm leading-tight">
+              <p className="font-semibold text-slate-800 text-sm leading-tight">
                 {role.name}
               </p>
               {role.isSystem && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-neutral-400 mt-0.5">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 mt-0.5">
                   <Lock className="h-3 w-3" />
                   Sistema
                 </span>
@@ -185,17 +185,17 @@ function RoleCard({
 
         {/* Description */}
         {role.description && (
-          <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{role.description}</p>
+          <p className="text-xs text-slate-500 mb-3 line-clamp-2">{role.description}</p>
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-4 pt-3 border-t border-neutral-100">
-          <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-            <ShieldCheck className="h-3.5 w-3.5 text-neutral-400" />
+        <div className="flex items-center gap-4 pt-3 border-t border-slate-100/60">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
             <span>{role._count?.permissions ?? 0} permisos</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-            <Users className="h-3.5 w-3.5 text-neutral-400" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Users className="h-3.5 w-3.5 text-slate-400" />
             <span>{role._count?.userAssignments ?? 0} usuarios</span>
           </div>
         </div>

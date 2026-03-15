@@ -5,8 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { UserForm } from '@/components/users/user-form';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Checkbox from '@/components/ui/checkbox';
@@ -18,6 +16,11 @@ import { User, Role, RoleWithPermissions, PermissionGroup } from '@/lib/types';
 import { toast } from 'sonner';
 import { Shield, ChevronDown, ChevronRight, Loader2, X, ExternalLink } from 'lucide-react';
 
+// ─── Shared glass surface classes ────────────────────────────────────────────
+const glass = 'bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-900/5 rounded-2xl overflow-hidden';
+const glassHeader = 'px-6 pt-6 pb-4 border-b border-slate-100/80 flex items-center justify-between flex-wrap gap-3';
+const glassContent = 'p-6';
+
 export default function EditUserPage() {
   const router = useRouter();
   const t = useTranslations('users');
@@ -25,30 +28,28 @@ export default function EditUserPage() {
   const canManage = canManageUsers(currentUser);
   const { id } = useParams();
 
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser]               = useState<User | null>(null);
+  const [loading, setLoading]         = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Roles state
-  const [allRoles, setAllRoles] = useState<RoleWithPermissions[]>([]); // roles WITH permissions (for rolePermIds)
-  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);    // all roles for the picker
+  const [allRoles, setAllRoles]               = useState<RoleWithPermissions[]>([]);
+  const [availableRoles, setAvailableRoles]   = useState<Role[]>([]);
   const [assignedRoleIds, setAssignedRoleIds] = useState<Set<string>>(new Set());
-  const [savingRoles, setSavingRoles] = useState(false);
+  const [savingRoles, setSavingRoles]         = useState(false);
 
   // Extra permissions state
-  const [permGroups, setPermGroups] = useState<PermissionGroup[]>([]);
-  const [grants, setGrants] = useState<Map<string, boolean>>(new Map()); // permId → granted (individual only)
-  const [expandedMods, setExpandedMods] = useState<Set<string>>(new Set());
-  const [savingPerms, setSavingPerms] = useState(false);
+  const [permGroups, setPermGroups]       = useState<PermissionGroup[]>([]);
+  const [grants, setGrants]               = useState<Map<string, boolean>>(new Map());
+  const [expandedMods, setExpandedMods]   = useState<Set<string>>(new Set());
+  const [savingPerms, setSavingPerms]     = useState(false);
 
-  // Derived: all permission IDs already covered by the currently assigned roles
+  // Derived: permission IDs already covered by assigned roles
   const rolePermIds = useMemo(() => {
     const ids = new Set<string>();
     for (const role of allRoles) {
       if (assignedRoleIds.has(role.id)) {
-        for (const rp of role.permissions) {
-          ids.add(rp.permissionId);
-        }
+        for (const rp of role.permissions) ids.add(rp.permissionId);
       }
     }
     return ids;
@@ -69,15 +70,10 @@ export default function EditUserPage() {
       setPermGroups(permsRes.data);
       setExpandedMods(new Set());
       setAvailableRoles(availableRolesRes.data);
-
-      // Store assigned roles WITH their permissions so rolePermIds can be derived
       setAllRoles(userRolesRes.data.roleAssignments.map((ra) => ra.role));
 
-      // Only store individual user-level grants (not role-inherited ones)
       const grantMap = new Map<string, boolean>();
-      userRolesRes.data.permissionGrants.forEach((g) => {
-        grantMap.set(g.permissionId, g.granted);
-      });
+      userRolesRes.data.permissionGrants.forEach((g) => grantMap.set(g.permissionId, g.granted));
       setGrants(grantMap);
     } catch {
       toast.error(t('edit.loadError'));
@@ -99,7 +95,7 @@ export default function EditUserPage() {
   const handleSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
-      await usersApi.update(id as string, data);
+    await usersApi.update(id as string, data);
       toast.success(t('edit.updateSuccess'));
       router.push('/users');
     } catch (error: any) {
@@ -113,7 +109,6 @@ export default function EditUserPage() {
     try {
       setSavingRoles(true);
       await usersApi.setRoles(id as string, Array.from(assignedRoleIds));
-      // Reload user roles to refresh rolePermIds derivation
       const updated = await usersApi.getRoles(id as string);
       setAllRoles(updated.data.roleAssignments.map((ra) => ra.role));
       toast.success('Roles actualizados');
@@ -147,13 +142,12 @@ export default function EditUserPage() {
       return next;
     });
 
-  const toggleGrant = (permId: string, value: boolean | 'remove') => {
+  const toggleGrant = (permId: string, value: boolean | 'remove') =>
     setGrants((prev) => {
       const next = new Map(prev);
       value === 'remove' ? next.delete(permId) : next.set(permId, value);
       return next;
     });
-  };
 
   const toggleExpandMod = (mod: string) =>
     setExpandedMods((prev) => {
@@ -164,14 +158,19 @@ export default function EditUserPage() {
 
   if (!canManage) return null;
 
+  // ── Loading skeleton ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div>
         <PageHeader title={t('edit.title')} description={t('edit.description')} />
-        <div className="space-y-6">
-          <Skeleton className="h-64" />
-          <Skeleton className="h-48" />
-          <Skeleton className="h-64" />
+        <div className="space-y-4">
+          {[64, 48, 64].map((h, i) => (
+            <div
+              key={i}
+              className={`${glass} animate-pulse`}
+              style={{ height: `${h * 4}px` }}
+            />
+          ))}
         </div>
       </div>
     );
@@ -179,123 +178,143 @@ export default function EditUserPage() {
 
   if (!user) return null;
 
+  // ── Rendered page ────────────────────────────────────────────────────────────
   return (
-    <div>
+    /* Gradient depth context so backdrop-blur has something to interact with */
+    <div className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 -left-20 w-[520px] h-[520px] rounded-full bg-indigo-100/50 blur-3xl -z-10"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-40 right-0 w-[380px] h-[380px] rounded-full bg-blue-50/60 blur-3xl -z-10"
+      />
+
       <PageHeader title={t('edit.title')} description={t('edit.description')} />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
+
         {/* ── Basic user info ── */}
         <UserForm user={user} onSubmit={handleSubmit} isLoading={isSubmitting} />
 
         {/* ── Roles assignment ── */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <CardTitle>Roles asignados</CardTitle>
-                <CardDescription className="mt-1">
-                  El usuario hereda todos los permisos de sus roles
-                </CardDescription>
+        <div className={glass}>
+          <div className={glassHeader}>
+            <div>
+              <p className="text-base font-semibold text-slate-800">Roles asignados</p>
+              <p className="text-sm text-slate-400 mt-0.5">
+                El usuario hereda todos los permisos de sus roles
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleSaveRoles}
+              disabled={savingRoles}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20"
+            >
+              {savingRoles && <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />}
+              Guardar roles
+            </Button>
+          </div>
+
+          <div className={glassContent}>
+            {availableRoles.length === 0 ? (
+              <p className="text-sm text-slate-400 py-4 text-center">No hay roles creados aún</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {availableRoles.map((role) => {
+                  const color = role.color ?? '#6366f1';
+                  const checked = assignedRoleIds.has(role.id);
+                  return (
+                    <label
+                      key={role.id}
+                      className={[
+                        'flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-150',
+                        checked
+                          ? 'bg-white border border-indigo-200/80 shadow-md shadow-indigo-500/10'
+                          : 'bg-white/40 border border-slate-200/60 hover:bg-white/70 hover:shadow-sm',
+                      ].join(' ')}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggleRole(role.id)}
+                        className="shrink-0"
+                      />
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${color}18` }}
+                      >
+                        <Shield className="h-3.5 w-3.5" style={{ color }} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-800 truncate">{role.name}</p>
+                        {role._count && (
+                          <p className="text-xs text-slate-400">{role._count.permissions} permisos</p>
+                        )}
+                      </div>
+                      {checked && (
+                        <Badge
+                          className="shrink-0 text-[10px] px-1.5 py-0 font-semibold"
+                          style={{ backgroundColor: `${color}18`, color }}
+                        >
+                          Activo
+                        </Badge>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
-              <Button size="sm" onClick={handleSaveRoles} disabled={savingRoles}>
-                {savingRoles && <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />}
-                Guardar roles
+            )}
+          </div>
+        </div>
+
+        {/* ── Individual permissions ── */}
+        <div className={glass}>
+          <div className={glassHeader}>
+            <div>
+              <p className="text-base font-semibold text-slate-800">Permisos individuales</p>
+              <p className="text-sm text-slate-400 mt-0.5 max-w-xl">
+                Solo permisos <span className="text-slate-600 font-medium">no cubiertos</span> por
+                los roles. Para editar permisos de un rol, ve a{' '}
+                <button
+                  type="button"
+                  onClick={() => router.push('/roles')}
+                  className="inline-flex items-center gap-0.5 text-indigo-500 hover:text-indigo-700 underline underline-offset-2 transition-colors"
+                >
+                  Roles <ExternalLink className="h-3 w-3" />
+                </button>
+                .
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {grants.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-slate-400 hover:text-slate-700"
+                  onClick={() => setGrants(new Map())}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  Limpiar
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={handleSavePerms}
+                disabled={savingPerms}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20"
+              >
+                {savingPerms && <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />}
+                Guardar permisos
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {availableRoles.map((role) => {
-                const color = role.color ?? '#6366f1';
-                const checked = assignedRoleIds.has(role.id);
-                return (
-                  <label
-                    key={role.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 cursor-pointer hover:bg-neutral-50 transition-colors"
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={() => toggleRole(role.id)}
-                      className="shrink-0"
-                    />
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${color}20` }}
-                    >
-                      <Shield className="h-3.5 w-3.5" style={{ color }} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{role.name}</p>
-                      {role._count && (
-                        <p className="text-xs text-neutral-400">
-                          {role._count.permissions} permisos
-                        </p>
-                      )}
-                    </div>
-                    {checked && (
-                      <Badge
-                        className="shrink-0 text-[10px] px-1.5 py-0"
-                        style={{ backgroundColor: `${color}20`, color }}
-                      >
-                        Activo
-                      </Badge>
-                    )}
-                  </label>
-                );
-              })}
-              {availableRoles.length === 0 && (
-                <p className="text-sm text-neutral-400 col-span-full py-4 text-center">
-                  No hay roles creados aún
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* ── Extra permissions ── */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <CardTitle>Permisos individuales</CardTitle>
-                <CardDescription className="mt-1">
-                  Solo se muestran los permisos <strong>no cubiertos</strong> por los roles
-                  asignados. Para modificar los permisos de un rol, edítalo directamente en{' '}
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-0.5 text-indigo-600 underline hover:text-indigo-700"
-                    onClick={() => router.push('/roles')}
-                  >
-                    Roles <ExternalLink className="h-3 w-3" />
-                  </button>
-                  .
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                {grants.size > 0 && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-neutral-500"
-                    onClick={() => setGrants(new Map())}
-                  >
-                    <X className="h-3.5 w-3.5 mr-1" />
-                    Limpiar
-                  </Button>
-                )}
-                <Button size="sm" onClick={handleSavePerms} disabled={savingPerms}>
-                  {savingPerms && <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />}
-                  Guardar permisos
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+          <div className={glassContent}>
             <div className="space-y-2">
               {permGroups.map((group) => {
-                // Only show permissions NOT already covered by any assigned role
                 const extraPerms = group.permissions.filter((p) => !rolePermIds.has(p.id));
-                // Skip modules where all permissions are already covered
                 if (extraPerms.length === 0) return null;
 
                 const isExp = expandedMods.has(group.module);
@@ -304,39 +323,43 @@ export default function EditUserPage() {
                 return (
                   <div
                     key={group.module}
-                    className="border border-neutral-200 rounded-xl overflow-hidden"
+                    className="border border-slate-200/70 rounded-xl overflow-hidden"
                   >
                     {/* Module header */}
-                    <div
-                      className="flex items-center gap-3 px-4 py-3 bg-neutral-50 cursor-pointer select-none"
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50/70 hover:bg-slate-100/60 transition-colors select-none"
                       onClick={() => toggleExpandMod(group.module)}
                     >
-                      <span className="text-neutral-400 shrink-0">
+                      <span className="text-slate-400 shrink-0">
                         {isExp
                           ? <ChevronDown className="h-4 w-4" />
                           : <ChevronRight className="h-4 w-4" />}
                       </span>
-                      <span className="text-sm font-semibold text-neutral-800 flex-1 capitalize">
+                      <span className="text-sm font-semibold text-slate-700 flex-1 text-left capitalize">
                         {group.module}
                       </span>
-                      <span className="text-xs text-neutral-400 tabular-nums shrink-0">
+                      <span className="text-xs text-slate-400 tabular-nums shrink-0">
                         {extraPerms.length} disponible{extraPerms.length !== 1 ? 's' : ''}
                       </span>
                       {groupGrants.length > 0 && (
-                        <span className="text-xs font-medium text-green-600 tabular-nums shrink-0">
+                        <span className="text-xs font-semibold text-emerald-600 tabular-nums shrink-0">
                           {groupGrants.length} activo{groupGrants.length !== 1 ? 's' : ''}
                         </span>
                       )}
-                    </div>
+                    </button>
 
                     {isExp && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-t border-neutral-100">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-t border-slate-100/80">
                         {extraPerms.map((perm) => {
                           const granted = grants.get(perm.id) === true;
                           return (
                             <label
                               key={perm.id}
-                              className="flex items-start gap-3 px-4 py-3 border-b border-neutral-100 last:border-0 cursor-pointer hover:bg-neutral-50/80 transition-colors"
+                              className={[
+                                'flex items-start gap-3 px-4 py-3 border-b border-slate-100/60 last:border-0 cursor-pointer transition-colors',
+                                granted ? 'bg-emerald-50/60' : 'hover:bg-white/60',
+                              ].join(' ')}
                             >
                               <Checkbox
                                 checked={granted}
@@ -346,10 +369,10 @@ export default function EditUserPage() {
                                 className="mt-0.5 shrink-0"
                               />
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-neutral-800 leading-none">
+                                <p className="text-sm font-medium text-slate-700 leading-none">
                                   {perm.name}
                                 </p>
-                                <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                                <p className="text-[11px] text-slate-400 font-mono mt-1">
                                   {perm.key}
                                 </p>
                               </div>
@@ -362,24 +385,24 @@ export default function EditUserPage() {
                 );
               })}
 
-              {/* Empty state when all permissions are covered by roles */}
+              {/* All covered by roles */}
               {rolePermIds.size > 0 &&
                 permGroups.every((g) => g.permissions.every((p) => rolePermIds.has(p.id))) && (
-                  <div className="text-center py-8 text-neutral-400 text-sm">
+                  <div className="text-center py-10 text-slate-400 text-sm">
                     Todos los permisos disponibles ya están cubiertos por los roles asignados.
                   </div>
                 )}
 
-              {rolePermIds.size === 0 && permGroups.length > 0 &&
-                permGroups.every((g) => g.permissions.every((p) => !rolePermIds.has(p.id))) &&
-                permGroups.flatMap((g) => g.permissions).length > 0 && (
-                  <p className="text-xs text-neutral-400 pb-1">
-                    Sin roles asignados se muestran todos los permisos disponibles.
-                  </p>
-                )}
+              {/* No roles assigned — show hint */}
+              {rolePermIds.size === 0 && permGroups.flatMap((g) => g.permissions).length > 0 && (
+                <p className="text-xs text-slate-400 pb-1">
+                  Sin roles asignados se muestran todos los permisos disponibles.
+                </p>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
       </div>
     </div>
   );

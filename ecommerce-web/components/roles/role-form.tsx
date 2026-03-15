@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -123,10 +122,10 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {/* ── Basic info ── */}
-        <Card>
-          <CardHeader>
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
             <div className="flex items-center gap-2">
-              <CardTitle>Información del rol</CardTitle>
+              <h3 className="text-base font-semibold text-slate-800">Información del rol</h3>
               {role?.isSystem && (
                 <Badge variant="secondary" className="gap-1">
                   <Lock className="h-3 w-3" />
@@ -135,12 +134,12 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
               )}
             </div>
             {role?.isSystem && (
-              <CardDescription>
+              <p className="text-sm text-slate-400 mt-1">
                 Los roles del sistema no pueden ser renombrados ni eliminados.
-              </CardDescription>
+              </p>
             )}
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </div>
+          <div className="glass-content space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -205,18 +204,18 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* ── Permissions ── */}
-        <Card>
-          <CardHeader>
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <CardTitle>Permisos</CardTitle>
-                <CardDescription className="mt-1">
+                <h3 className="text-base font-semibold text-slate-800">Permisos</h3>
+                <p className="text-sm text-slate-400 mt-1">
                   {selected.size} de {totalPerms} seleccionados
-                </CardDescription>
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button
@@ -239,8 +238,8 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
                 </Button>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="glass-content">
             {loadingPerms ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -256,13 +255,13 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
                   return (
                     <div
                       key={group.module}
-                      className="border border-neutral-200 rounded-xl overflow-hidden"
+                      className="border border-slate-200/60 rounded-xl overflow-hidden"
                     >
                       {/* Module header */}
-                      <div className="flex items-center gap-3 px-4 py-3 bg-neutral-50 cursor-pointer select-none"
+                      <div className="flex items-center gap-3 px-4 py-3 bg-slate-50/60 cursor-pointer select-none"
                         onClick={() => toggleExpand(group.module)}
                       >
-                        <span className="text-neutral-400 shrink-0">
+                        <span className="text-slate-400 shrink-0">
                           {isExp
                             ? <ChevronDown className="h-4 w-4" />
                             : <ChevronRight className="h-4 w-4" />}
@@ -274,21 +273,21 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
                           onClick={(e) => e.stopPropagation()}
                           className="shrink-0"
                         />
-                        <span className="text-sm font-semibold text-neutral-800 flex-1">
+                        <span className="text-sm font-semibold text-slate-800 flex-1">
                           {MODULE_LABELS[group.module] ?? group.module}
                         </span>
-                        <span className="text-xs text-neutral-400 tabular-nums shrink-0">
+                        <span className="text-xs text-slate-400 tabular-nums shrink-0">
                           {selCount}/{group.permissions.length}
                         </span>
                       </div>
 
                       {/* Permissions grid */}
                       {isExp && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-t border-neutral-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 border-t border-slate-100/60">
                           {group.permissions.map((perm) => (
                             <label
                               key={perm.id}
-                              className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-neutral-50/80 transition-colors border-b border-neutral-100 last:border-0"
+                              className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-white/60 transition-colors border-b border-slate-100/60 last:border-0"
                             >
                               <Checkbox
                                 checked={selected.has(perm.id)}
@@ -296,10 +295,10 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
                                 className="mt-0.5 shrink-0"
                               />
                               <div className="min-w-0">
-                                <p className="text-sm font-medium text-neutral-800 leading-none">
+                                <p className="text-sm font-medium text-slate-800 leading-none">
                                   {perm.name}
                                 </p>
-                                <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                                <p className="text-[11px] text-slate-400 font-mono mt-0.5">
                                   {perm.key}
                                 </p>
                               </div>
@@ -312,18 +311,16 @@ export function RoleForm({ role, onSubmit, isLoading }: RoleFormProps) {
                 })}
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* ── Actions ── */}
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => window.history.back()}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isLoading || loadingPerms}>
-            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {role ? 'Actualizar rol' : 'Crear rol'}
-          </Button>
+          </div>
+          <div className="glass-footer flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => window.history.back()}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading || loadingPerms}>
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {role ? 'Actualizar rol' : 'Crear rol'}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

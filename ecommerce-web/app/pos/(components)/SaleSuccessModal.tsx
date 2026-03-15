@@ -265,14 +265,14 @@ export default function SaleSuccessModal({
 
               {/* Payment + Customer */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-3.5">
+                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-white/40 bg-neutral-50 px-3 py-3.5">
                   <span className="text-2xl leading-none">{PAYMENT_EMOJIS[paymentMethod] ?? '💳'}</span>
                   <span className="text-xs text-neutral-500">Método</span>
                   <span className="text-sm font-semibold text-neutral-800">
                     {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
                   </span>
                 </div>
-                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-3.5">
+                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-white/40 bg-neutral-50 px-3 py-3.5">
                   <span className="text-2xl leading-none">{customer ? '👤' : '🛒'}</span>
                   <span className="text-xs text-neutral-500">Cliente</span>
                   <span className="text-sm font-semibold text-neutral-800 text-center leading-tight line-clamp-2">

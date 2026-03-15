@@ -59,10 +59,10 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-2xl max-w-md w-full mx-auto overflow-hidden">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Admin/POS</CardTitle>
-        <CardDescription className="text-center">
+        <CardTitle className="text-2xl font-bold text-center text-slate-800">Admin/POS</CardTitle>
+        <CardDescription className="text-center text-slate-500">
           Ingresa tus credenciales para acceder
         </CardDescription>
       </CardHeader>

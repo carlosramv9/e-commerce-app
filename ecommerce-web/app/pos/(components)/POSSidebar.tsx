@@ -50,17 +50,17 @@ export default function POSSidebar({
     const fullName = user ? `${user.firstName} ${user.lastName}` : '';
 
     return (
-        <aside className="h-full w-14 lg:w-44 bg-[#0f1117] flex flex-col shrink-0 border-r border-white/[0.06]">
+        <aside className="h-full w-14 lg:w-44 bg-[#111318] flex flex-col shrink-0 border-r border-white/[0.05]">
             {/* Brand */}
-            <div className="flex items-center gap-3 px-3 lg:px-4 py-[18px] border-b border-white/[0.06]">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25">
-                    <ShoppingCart className="h-4 w-4 text-white" strokeWidth={2.5} />
+            <div className="flex items-center gap-3 px-3 lg:px-4 py-[18px] border-b border-white/[0.05]">
+                <div className="w-8 h-8 rounded-xl bg-white/[0.08] border border-white/[0.10] flex items-center justify-center shrink-0">
+                    <ShoppingCart className="h-4 w-4 text-white/70" strokeWidth={2.5} />
                 </div>
                 <div className="hidden lg:block overflow-hidden">
-                    <p className="text-white text-[13px] font-semibold leading-none tracking-tight">
+                    <p className="text-white/80 text-[13px] font-semibold leading-none tracking-tight">
                         Terminal POS
                     </p>
-                    <p className="text-white/30 text-[11px] mt-0.5">Punto de venta</p>
+                    <p className="text-white/25 text-[11px] mt-0.5">Punto de venta</p>
                 </div>
             </div>
 
@@ -75,24 +75,19 @@ export default function POSSidebar({
                             className={cn(
                                 'relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left',
                                 active
-                                    ? 'bg-white/[0.09] text-white'
-                                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.05]',
+                                    ? 'bg-white/[0.09] text-white/90'
+                                    : 'text-white/35 hover:text-white/60 hover:bg-white/[0.05]',
                             )}
                         >
                             {active && (
-                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-blue-400" />
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-white/40" />
                             )}
 
                             {/* Icon + mobile badge */}
                             <span className="relative shrink-0">
-                                <Icon
-                                    className={cn(
-                                        'h-[18px] w-[18px]',
-                                        active ? 'text-blue-400' : '',
-                                    )}
-                                />
+                                <Icon className="h-[18px] w-[18px]" />
                                 {id === 'cobrar' && cartCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 h-[14px] w-[14px] rounded-full bg-blue-500 text-white text-[8px] font-bold flex items-center justify-center lg:hidden">
+                                    <span className="absolute -top-1.5 -right-1.5 h-[14px] w-[14px] rounded-full bg-white/20 text-white/70 text-[8px] font-bold flex items-center justify-center lg:hidden">
                                         {cartCount > 9 ? '9+' : cartCount}
                                     </span>
                                 )}
@@ -104,7 +99,7 @@ export default function POSSidebar({
 
                             {/* Desktop cart badge */}
                             {id === 'cobrar' && cartCount > 0 && (
-                                <span className="hidden lg:flex ml-auto h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold px-1.5 border border-blue-500/30">
+                                <span className="hidden lg:flex ml-auto h-5 min-w-[20px] items-center justify-center rounded-full bg-white/[0.08] text-white/50 text-[11px] font-bold px-1.5 border border-white/[0.10]">
                                     {cartCount}
                                 </span>
                             )}
@@ -114,16 +109,16 @@ export default function POSSidebar({
             </nav>
 
             {/* Footer */}
-            <div className="p-2 border-t border-white/[0.06] space-y-0.5">
+            <div className="p-2 border-t border-white/[0.05] space-y-0.5">
                 {/* Clock (desktop only) */}
                 <div className="hidden lg:block px-3 py-2.5">
-                    <p className="text-white font-mono text-base font-semibold leading-none tabular-nums">
+                    <p className="text-white/70 font-mono text-base font-semibold leading-none tabular-nums">
                         {currentTime.toLocaleTimeString('es-MX', {
                             hour: '2-digit',
                             minute: '2-digit',
                         })}
                     </p>
-                    <p className="text-white/30 text-[11px] mt-1 capitalize">
+                    <p className="text-white/25 text-[11px] mt-1 capitalize">
                         {currentTime.toLocaleDateString('es-MX', {
                             weekday: 'long',
                             day: 'numeric',
@@ -134,23 +129,23 @@ export default function POSSidebar({
 
                 {/* User info */}
                 <div className="flex items-center gap-2.5 px-3 py-2">
-                    <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                        <span className="text-[11px] font-semibold text-white/60">
+                    <div className="w-7 h-7 rounded-full bg-white/[0.07] border border-white/[0.10] flex items-center justify-center shrink-0">
+                        <span className="text-[11px] font-semibold text-white/50">
                             {initials}
                         </span>
                     </div>
                     <div className="hidden lg:block overflow-hidden flex-1 min-w-0">
-                        <p className="text-white/60 text-xs font-medium truncate leading-none">
+                        <p className="text-white/50 text-xs font-medium truncate leading-none">
                             {fullName}
                         </p>
-                        <p className="text-white/25 text-[10px] mt-0.5">Vendedor</p>
+                        <p className="text-white/20 text-[10px] mt-0.5">Vendedor</p>
                     </div>
                 </div>
 
                 {/* Exit */}
                 <button
                     onClick={onExit}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/25 hover:text-white/50 hover:bg-white/[0.05] transition-all duration-150"
                 >
                     <LogOut className="h-[17px] w-[17px] shrink-0" />
                     <span className="hidden lg:block text-[13px] font-medium">Salir del POS</span>

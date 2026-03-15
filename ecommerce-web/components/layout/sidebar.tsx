@@ -51,15 +51,28 @@ export function Sidebar() {
   });
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-white">
-      <div className="flex h-full flex-col">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 flex flex-col overflow-hidden rounded-r-2xl">
+      {/* Base glass: semitransparente + blur tipo cristal esmerilado */}
+      <div className="absolute inset-0 bg-white/25 backdrop-blur-2xl border-r border-white/20" />
+      {/* Reflejo en borde izquierdo (luz sobre el cristal) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none bg-linear-to-r from-white/50 via-white/10 to-transparent"
+      />
+      {/* Brillo suave superior */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none bg-linear-to-b from-white/25 via-white/5 to-transparent"
+      />
+
+      <div className="relative z-10 flex flex-col flex-1 min-h-0">
         {/* Logo */}
-        <div className="flex h-16 items-center border-b px-6">
-          <h1 className="text-xl font-bold text-gray-900">Admin/POS</h1>
+        <div className="flex h-16 items-center border-b border-white/20 px-6">
+          <h1 className="text-xl font-bold text-slate-800">Admin/POS</h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           <ul className="space-y-1">
             {visibleMenuItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -70,13 +83,13 @@ export function Sidebar() {
                   <Link
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                       isActive
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-slate-900/8 text-slate-800 border-l-2 border-slate-500/50 pl-[10px]'
+                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-900/5'
                     )}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-5 w-5 shrink-0" />
                     {t(item.key)}
                   </Link>
                 </li>
@@ -85,20 +98,20 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* User info */}
-        <div className="border-t p-4">
+        {/* User footer */}
+        <div className="border-t border-white/20 p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
-              <span className="text-xs font-medium text-gray-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200/80">
+              <span className="text-xs font-semibold text-slate-600">
                 {user?.firstName.charAt(0)}
                 {user?.lastName.charAt(0)}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-slate-800 truncate">
                 {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user?.role}</p>
+              <p className="text-xs text-slate-400 truncate">{user?.role}</p>
             </div>
           </div>
         </div>

@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { categoriesApi } from '@/lib/api/categories';
 import { productsApi } from '@/lib/api/products';
@@ -121,11 +120,11 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.basicInfo')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.basicInfo')}</h3>
+          </div>
+          <div className="glass-content space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -185,15 +184,15 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Discount Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.discountConfig')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.discountConfig')}</h3>
+          </div>
+          <div className="glass-content space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -319,15 +318,15 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 />
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Auto-Application */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.autoApply')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.autoApply')}</h3>
+          </div>
+          <div className="glass-content space-y-4">
             <FormField
               control={form.control}
               name="autoApply"
@@ -433,15 +432,15 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 </div>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Restrictions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.restrictions')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.restrictions')}</h3>
+          </div>
+          <div className="glass-content space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -531,15 +530,15 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 )}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Validity Period */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.validityPeriod')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.validityPeriod')}</h3>
+          </div>
+          <div className="glass-content space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -569,15 +568,13 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
                 )}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit */}
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {coupon ? t('form.submitUpdate') : t('form.submitCreate')}
-          </Button>
+          </div>
+          <div className="glass-footer flex justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {coupon ? t('form.submitUpdate') : t('form.submitCreate')}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

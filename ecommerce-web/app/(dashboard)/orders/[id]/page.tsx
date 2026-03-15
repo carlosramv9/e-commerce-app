@@ -182,13 +182,13 @@ export default function OrderDetailsPage() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('detail.subtotal')}</span>
+                  <span className="text-slate-600">{t('detail.subtotal')}</span>
                   <span>{formatCurrency(order.subtotal)}</span>
                 </div>
 
                 {order.discount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">
+                    <span className="text-slate-600">
                       {t('detail.discount')} {order.couponCode && `(${order.couponCode})`}
                     </span>
                     <span className="text-green-600">-{formatCurrency(order.discount)}</span>
@@ -196,12 +196,12 @@ export default function OrderDetailsPage() {
                 )}
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('detail.tax')}</span>
+                  <span className="text-slate-600">{t('detail.tax')}</span>
                   <span>{formatCurrency(order.tax)}</span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('detail.shipping')}</span>
+                  <span className="text-slate-600">{t('detail.shipping')}</span>
                   <span>{formatCurrency(order.shippingCost)}</span>
                 </div>
 
@@ -229,8 +229,8 @@ export default function OrderDetailsPage() {
                       <p>
                         {order.customer.firstName} {order.customer.lastName}
                       </p>
-                      <p className="text-gray-600">{order.customer.email}</p>
-                      <p className="text-gray-600">{order.customer.phone}</p>
+                      <p className="text-slate-600">{order.customer.email}</p>
+                      <p className="text-slate-600">{order.customer.phone}</p>
                     </div>
                   </div>
 
@@ -263,7 +263,7 @@ export default function OrderDetailsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{t('detail.currentStatus')}:</span>
+                <span className="text-sm text-slate-600">{t('detail.currentStatus')}:</span>
                 {getStatusBadge(order.status)}
               </div>
 
@@ -327,35 +327,35 @@ export default function OrderDetailsPage() {
                 order.payments.map((payment, index) => (
                   <div
                     key={payment.id}
-                    className={`space-y-2 ${order.payments!.length > 1 ? 'pb-3 border-b border-gray-100 last:border-0 last:pb-0' : ''}`}
+                    className={`space-y-2 ${order.payments!.length > 1 ? 'pb-3 border-b border-slate-100 last:border-0 last:pb-0' : ''}`}
                   >
                     {order.payments!.length > 1 && (
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
                         {t('detail.paymentMethod')} {index + 1}
                       </p>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('detail.paymentMethod')}:</span>
+                      <span className="text-slate-600">{t('detail.paymentMethod')}:</span>
                       <span className="font-medium">{payment.paymentMethod}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('detail.paymentStatus')}:</span>
+                      <span className="text-slate-600">{t('detail.paymentStatus')}:</span>
                       <span className="font-medium">{payment.status}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('detail.paymentAmount')}:</span>
+                      <span className="text-slate-600">{t('detail.paymentAmount')}:</span>
                       <span className="font-medium">{formatCurrency(payment.amount)}</span>
                     </div>
                     {payment.transactionId && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">{t('detail.transactionId')}:</span>
+                        <span className="text-slate-600">{t('detail.transactionId')}:</span>
                         <span className="font-mono text-xs">{payment.transactionId}</span>
                       </div>
                     )}
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">{t('detail.noPaymentInfo')}</p>
+                <p className="text-slate-500 text-sm">{t('detail.noPaymentInfo')}</p>
               )}
             </CardContent>
           </Card>

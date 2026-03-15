@@ -160,43 +160,43 @@ const CheckoutModal = ({
     return (
         <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
             <DialogContent className="max-w-md p-0 gap-0 overflow-hidden">
-                <DialogHeader className="px-5 pt-5 pb-4 border-b border-neutral-100">
+                <DialogHeader className="px-5 pt-5 pb-4 border-b border-white/40">
                     <DialogTitle className="text-base font-semibold">Resumen de Venta</DialogTitle>
                 </DialogHeader>
 
                 <div className="overflow-y-auto max-h-[70vh]">
                     {/* Customer */}
                     {customer && (
-                        <div className="px-5 py-3 border-b border-neutral-100 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center shrink-0">
-                                <span className="text-xs font-semibold text-neutral-600">
+                        <div className="px-5 py-3 border-b border-white/40 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100/80 flex items-center justify-center shrink-0">
+                                <span className="text-xs font-semibold text-slate-600">
                                     {customer.firstName[0]}{customer.lastName[0]}
                                 </span>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-neutral-900">
+                                <p className="text-sm font-medium text-slate-800">
                                     {customer.firstName} {customer.lastName}
                                 </p>
-                                <p className="text-xs text-neutral-500">{customer.email}</p>
+                                <p className="text-xs text-slate-400">{customer.email}</p>
                             </div>
                         </div>
                     )}
 
                     {/* Items */}
-                    <div className="px-5 py-4 border-b border-neutral-100">
-                        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3">
+                    <div className="px-5 py-4 border-b border-white/40">
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
                             Productos ({cart.length})
                         </p>
                         <div className="space-y-2.5">
                             {cart.map((item) => (
                                 <div key={item.product.id} className="flex justify-between items-start gap-3">
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-neutral-900 truncate">{item.product.name}</p>
-                                        <p className="text-xs text-neutral-500 font-mono">
+                                        <p className="text-sm text-slate-800 truncate">{item.product.name}</p>
+                                        <p className="text-xs text-slate-400 font-mono">
                                             {item.quantity} × {currencyFormatter.format(item.product.price)}
                                         </p>
                                     </div>
-                                    <p className="text-sm font-mono font-semibold text-neutral-900 shrink-0">
+                                    <p className="text-sm font-mono font-semibold text-slate-800 shrink-0">
                                         {currencyFormatter.format(item.product.price * item.quantity)}
                                     </p>
                                 </div>
@@ -205,10 +205,10 @@ const CheckoutModal = ({
                     </div>
 
                     {/* Totals */}
-                    <div className="px-5 py-4 border-b border-neutral-100 space-y-2">
+                    <div className="px-5 py-4 border-b border-white/40 space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span className="text-neutral-600">Subtotal</span>
-                            <span className="font-mono text-neutral-900">{currencyFormatter.format(subtotal)}</span>
+                            <span className="text-slate-600">Subtotal</span>
+                            <span className="font-mono text-slate-800">{currencyFormatter.format(subtotal)}</span>
                         </div>
                         {discount > 0 && (
                             <div className="flex justify-between text-sm">
@@ -221,15 +221,15 @@ const CheckoutModal = ({
                         )}
                         <Separator />
                         <div className="flex justify-between">
-                            <span className="font-semibold text-neutral-900">Total</span>
-                            <span className="font-mono font-bold text-xl text-neutral-900">{currencyFormatter.format(total)}</span>
+                            <span className="font-semibold text-slate-800">Total</span>
+                            <span className="font-mono font-bold text-xl text-slate-800">{currencyFormatter.format(total)}</span>
                         </div>
                     </div>
 
                     {/* Payment section */}
                     <div className="px-5 py-4">
                         <div className="flex items-center justify-between mb-3">
-                            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
                                 {isMultiple ? 'Pago Dividido' : 'Método de Pago'}
                             </p>
                             {splits.length < MAX_SPLITS && (
@@ -247,12 +247,12 @@ const CheckoutModal = ({
                             {splits.map((split, index) => (
                                 <div
                                     key={split.id}
-                                    className="rounded-xl border border-neutral-200 p-3 bg-neutral-50/60"
+                                    className="rounded-xl border border-white/50 p-3 bg-white/30 backdrop-blur-sm"
                                 >
                                     {/* Split header (only in multi-split mode) */}
                                     {isMultiple && (
                                         <div className="flex items-center justify-between mb-2.5">
-                                            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                                 Pago {index + 1}
                                             </span>
                                             {index > 0 && (
@@ -278,8 +278,8 @@ const CheckoutModal = ({
                                                     onClick={() => updateMethod(split.id, m.id)}
                                                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                         selected
-                                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                            : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300'
+                                                            ? 'border-slate-700 bg-slate-800 text-white shadow-sm'
+                                                            : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70'
                                                     }`}
                                                 >
                                                     <Icon className="h-3.5 w-3.5" />
@@ -294,7 +294,7 @@ const CheckoutModal = ({
                                                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                     split.isRemaining
                                                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                        : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
+                                                        : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70'
                                                 }`}
                                             >
                                                 {split.isRemaining ? 'Quitar resto' : 'Resto aquí'}
@@ -305,7 +305,7 @@ const CheckoutModal = ({
                                     {/* Amount: input o monto calculado (resto) */}
                                     {isMultiple && (
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400 pointer-events-none select-none">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none select-none">
                                                 $
                                             </span>
                                             {split.isRemaining ? (
@@ -335,7 +335,7 @@ const CheckoutModal = ({
                                                     step="0.01"
                                                     value={split.amount}
                                                     onChange={(e) => updateAmount(split.id, e.target.value)}
-                                                    className="w-full pl-6 pr-3 py-2 border border-neutral-200 rounded-lg text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    className="w-full pl-6 pr-3 py-2 border border-white/50 bg-white/60 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-slate-300/60 focus:border-transparent"
                                                 />
                                             )}
                                         </div>
@@ -373,7 +373,7 @@ const CheckoutModal = ({
                 </div>
 
                 {/* Actions */}
-                <div className="border-t border-neutral-100 px-5 py-4 flex gap-3">
+                <div className="border-t border-white/40 px-5 py-4 flex gap-3 bg-white/20 backdrop-blur-sm">
                     <Button
                         variant="outline"
                         className="flex-1"

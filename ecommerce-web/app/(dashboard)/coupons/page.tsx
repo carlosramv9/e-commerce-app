@@ -169,7 +169,7 @@ export default function CouponsPage() {
             </div>
           ) : coupons.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">{t('noResults')}</p>
+              <p className="text-slate-500">{t('noResults')}</p>
             </div>
           ) : (
             <>
@@ -197,7 +197,7 @@ export default function CouponsPage() {
                         {coupon.autoApply ? (
                           <Check className="h-4 w-4 text-green-600" />
                         ) : (
-                          <X className="h-4 w-4 text-gray-400" />
+                          <X className="h-4 w-4 text-slate-400" />
                         )}
                       </TableCell>
                       <TableCell>
@@ -247,7 +247,7 @@ export default function CouponsPage() {
 
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-slate-500">
                   {tc('page', { current: page, total: totalPages })}
                 </div>
                 <div className="flex gap-2">

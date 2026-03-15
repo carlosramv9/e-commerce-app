@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { categoriesApi } from '@/lib/api/categories';
 import { Category } from '@/lib/types';
@@ -131,11 +130,11 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('form.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">{t('form.title')}</h3>
+          </div>
+          <div className="glass-content space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -259,14 +258,13 @@ export function CategoryForm({ category, onSubmit, isLoading }: CategoryFormProp
                 )}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {category ? t('form.submitUpdate') : t('form.submitCreate')}
-          </Button>
+          </div>
+          <div className="glass-footer flex justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {category ? t('form.submitUpdate') : t('form.submitCreate')}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

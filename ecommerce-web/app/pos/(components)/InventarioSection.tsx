@@ -50,16 +50,16 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="border-b border-neutral-100 bg-white px-6 py-4 shrink-0">
+            <div className="border-b border-slate-100/80 bg-white/60 backdrop-blur-sm px-6 py-4 shrink-0">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-base font-semibold text-neutral-900">Inventario</h2>
-                        <p className="text-xs text-neutral-400 mt-0.5">
+                        <h2 className="text-base font-semibold text-slate-800">Inventario</h2>
+                        <p className="text-xs text-slate-400 mt-0.5">
                             Vista de stock — solo lectura
                         </p>
                     </div>
                     {(lowStockCount > 0 || outCount > 0) && (
-                        <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100/80 border border-slate-200/60 px-3 py-1.5 rounded-lg">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             <span className="text-xs font-semibold">
                                 {outCount > 0 && `${outCount} agotado${outCount > 1 ? 's' : ''}`}
@@ -78,15 +78,15 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
                             onClick={() => setFilter(id)}
                             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
                                 filter === id
-                                    ? 'bg-neutral-900 text-white border-neutral-900'
-                                    : 'bg-white text-neutral-500 border-neutral-200 hover:bg-neutral-50'
+                                    ? 'bg-slate-800 text-white border-slate-800'
+                                    : 'bg-white/60 text-slate-500 border-slate-200/60 hover:bg-white/80 hover:text-slate-700'
                             }`}
                         >
                             {label}
                             {count !== undefined && (
                                 <span
                                     className={`ml-1.5 text-[10px] font-bold ${
-                                        filter === id ? 'text-white/60' : 'text-neutral-400'
+                                        filter === id ? 'text-white/60' : 'text-slate-400'
                                     }`}
                                 >
                                     {count}
@@ -97,12 +97,12 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
                 </div>
 
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
                         placeholder="Buscar por nombre o SKU..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9 h-9 text-sm border-neutral-200"
+                        className="pl-9 h-9 text-sm bg-white/60 border-slate-200/80"
                     />
                 </div>
             </div>
@@ -111,10 +111,10 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
             <div className="flex-1 overflow-y-auto px-6 py-4">
                 {filtered.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center">
-                            <Package className="h-6 w-6 text-neutral-300" />
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center">
+                            <Package className="h-6 w-6 text-slate-300" />
                         </div>
-                        <p className="text-sm font-medium text-neutral-400">Sin productos</p>
+                        <p className="text-sm font-medium text-slate-400">Sin productos</p>
                     </div>
                 ) : (
                     <div className="space-y-1.5">
@@ -124,17 +124,17 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
                             const isOk   = !isOut && !isLow;
 
                             const stockStyle = isOut
-                                ? 'text-red-600 bg-red-50 border-red-200'
+                                ? 'text-red-600 bg-red-50/80 border-red-200/80'
                                 : isLow
-                                ? 'text-amber-600 bg-amber-50 border-amber-200'
-                                : 'text-emerald-600 bg-emerald-50 border-emerald-200';
+                                ? 'text-amber-600 bg-amber-50/80 border-amber-200/80'
+                                : 'text-slate-500 bg-slate-100/80 border-slate-200/60';
 
                             const StockIcon = isOk ? CheckCircle2 : AlertTriangle;
 
                             return (
                                 <div
                                     key={product.id}
-                                    className="bg-white rounded-xl border border-neutral-100 px-4 py-3 flex items-center gap-3"
+                                    className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200/60 px-4 py-3 flex items-center gap-3"
                                 >
                                     {/* Stock icon */}
                                     <div
@@ -145,15 +145,15 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-neutral-900 truncate">
+                                        <p className="text-sm font-medium text-slate-800 truncate">
                                             {product.name}
                                         </p>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[11px] text-neutral-400 font-mono">
+                                            <span className="text-[11px] text-slate-400 font-mono">
                                                 {product.sku}
                                             </span>
-                                            <span className="text-[11px] text-neutral-300">·</span>
-                                            <span className="text-[11px] text-neutral-500 font-medium">
+                                            <span className="text-[11px] text-slate-300">·</span>
+                                            <span className="text-[11px] text-slate-500 font-medium">
                                                 {currencyFormatter.format(Number(product.price))}
                                             </span>
                                         </div>

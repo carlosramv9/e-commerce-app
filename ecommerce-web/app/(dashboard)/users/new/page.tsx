@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { UserForm } from '@/components/users/user-form';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Checkbox from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -103,20 +102,20 @@ export default function NewUserPage() {
         />
 
         {/* Roles — optional, assigned right after creation */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Roles iniciales</CardTitle>
-            <CardDescription className="flex items-start gap-2 mt-1">
+        <div className="glass overflow-hidden">
+          <div className="glass-header">
+            <h3 className="text-base font-semibold text-slate-800">Roles iniciales</h3>
+            <div className="flex items-start gap-2 mt-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
-              <span>
+              <span className="text-sm text-slate-500">
                 Opcional. Selecciona los roles que se asignarán al guardar el usuario.
                 Los permisos individuales se configuran desde la edición, una vez creado.
               </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </div>
+          </div>
+          <div className="glass-content">
             {allRoles.length === 0 ? (
-              <p className="text-sm text-neutral-400 py-4 text-center">
+              <p className="text-sm text-slate-400 py-4 text-center">
                 No hay roles disponibles.{' '}
                 <button
                   type="button"
@@ -135,7 +134,7 @@ export default function NewUserPage() {
                   return (
                     <label
                       key={role.id}
-                      className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 cursor-pointer hover:bg-neutral-50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/60 cursor-pointer hover:bg-white/60 transition-colors"
                     >
                       <Checkbox
                         checked={checked}
@@ -149,9 +148,9 @@ export default function NewUserPage() {
                         <Shield className="h-3.5 w-3.5" style={{ color }} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-neutral-900 truncate">{role.name}</p>
+                        <p className="text-sm font-medium text-slate-800 truncate">{role.name}</p>
                         {role._count && (
-                          <p className="text-xs text-neutral-400">
+                          <p className="text-xs text-slate-400">
                             {role._count.permissions} permisos
                           </p>
                         )}
@@ -169,8 +168,8 @@ export default function NewUserPage() {
                 })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Submit — targets the form via form attribute */}
         <div className="flex justify-end gap-3">

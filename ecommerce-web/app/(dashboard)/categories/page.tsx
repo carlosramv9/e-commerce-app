@@ -77,7 +77,7 @@ export default function CategoriesPage() {
   const getStatusBadge = (status: CategoryStatus) => {
     const variants: Record<CategoryStatus, { label: string; className: string }> = {
       ACTIVE: { label: t('statusActive'), className: 'bg-green-100 text-green-800' },
-      INACTIVE: { label: t('statusInactive'), className: 'bg-gray-100 text-gray-800' },
+      INACTIVE: { label: t('statusInactive'), className: 'bg-slate-100 text-slate-800' },
     };
 
     const variant = variants[status];
@@ -95,14 +95,14 @@ export default function CategoriesPage() {
     return (
       <div key={category.id}>
         <div
-          className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+          className="flex items-center justify-between p-3 hover:bg-white/60 rounded-xl transition-colors"
           style={{ paddingLeft: `${level * 2 + 1}rem` }}
         >
           <div className="flex items-center gap-3 flex-1">
             {hasChildren ? (
               <button
                 onClick={() => toggleExpand(category.id)}
-                className="p-1 hover:bg-gray-200 rounded"
+                className="p-1 hover:bg-slate-100 rounded"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
@@ -117,13 +117,13 @@ export default function CategoriesPage() {
             <div className="flex-1">
               <div className="font-medium">{category.name}</div>
               {category.description && (
-                <div className="text-sm text-gray-500 mt-1">{category.description}</div>
+                <div className="text-sm text-slate-500 mt-1">{category.description}</div>
               )}
             </div>
 
             <div className="flex items-center gap-2">
               {getStatusBadge(category.status)}
-              <span className="text-sm text-gray-500">{t('order')}: {category.sortOrder}</span>
+              <span className="text-sm text-slate-500">{t('order')}: {category.sortOrder}</span>
             </div>
           </div>
 
@@ -182,7 +182,7 @@ export default function CategoriesPage() {
             </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">{t('noResults')}</p>
+              <p className="text-slate-500">{t('noResults')}</p>
             </div>
           ) : (
             <div className="space-y-2">
