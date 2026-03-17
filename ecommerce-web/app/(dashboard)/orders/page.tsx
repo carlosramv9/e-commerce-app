@@ -72,13 +72,13 @@ export default function OrdersPage() {
 
   const getStatusBadge = (status: OrderStatus) => {
     const variants: Record<OrderStatus, { label: string; className: string }> = {
-      PENDING: { label: t('statusPending'), className: 'bg-yellow-100 text-yellow-800' },
-      CONFIRMED: { label: t('statusConfirmed'), className: 'bg-blue-100 text-blue-800' },
-      PROCESSING: { label: t('statusProcessing'), className: 'bg-purple-100 text-purple-800' },
-      SHIPPED: { label: t('statusShipped'), className: 'bg-cyan-100 text-cyan-800' },
-      DELIVERED: { label: t('statusDelivered'), className: 'bg-green-100 text-green-800' },
-      CANCELLED: { label: t('statusCancelled'), className: 'bg-red-100 text-red-800' },
-      REFUNDED: { label: t('statusRefunded'), className: 'bg-orange-100 text-orange-800' },
+      PENDING:    { label: t('statusPending'),    className: 'bg-yellow-100 text-yellow-800 badge-pending' },
+      CONFIRMED:  { label: t('statusConfirmed'),  className: 'bg-blue-100 text-blue-800 badge-confirmed' },
+      PROCESSING: { label: t('statusProcessing'), className: 'bg-purple-100 text-purple-800 badge-processing' },
+      SHIPPED:    { label: t('statusShipped'),    className: 'bg-cyan-100 text-cyan-800 badge-shipped' },
+      DELIVERED:  { label: t('statusDelivered'),  className: 'bg-green-100 text-green-800 badge-delivered' },
+      CANCELLED:  { label: t('statusCancelled'),  className: 'bg-red-100 text-red-800 badge-cancelled' },
+      REFUNDED:   { label: t('statusRefunded'),   className: 'bg-orange-100 text-orange-800 badge-refunded' },
     };
 
     const variant = variants[status];

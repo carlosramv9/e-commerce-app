@@ -24,7 +24,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
   const td = useTranslations('dashboard');
-  const tc = useTranslations('common');
   const to = useTranslations('orders');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
@@ -47,7 +46,7 @@ export default function DashboardPage() {
       setStats(statsRes.data);
       setRecentOrders(ordersRes.data.data);
       setLowStockProducts(lowStockRes.data);
-    } catch (error: any) {
+    } catch {
       toast.error(td('loadError'));
     } finally {
       setLoading(false);
@@ -63,14 +62,14 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      PENDING: 'bg-yellow-100 text-yellow-800',
-      CONFIRMED: 'bg-blue-100 text-blue-800',
-      PROCESSING: 'bg-purple-100 text-purple-800',
-      SHIPPED: 'bg-cyan-100 text-cyan-800',
-      DELIVERED: 'bg-green-100 text-green-800',
-      CANCELLED: 'bg-red-100 text-red-800',
+      PENDING:    'bg-yellow-100 text-yellow-800 badge-pending',
+      CONFIRMED:  'bg-blue-100 text-blue-800 badge-confirmed',
+      PROCESSING: 'bg-purple-100 text-purple-800 badge-processing',
+      SHIPPED:    'bg-cyan-100 text-cyan-800 badge-shipped',
+      DELIVERED:  'bg-green-100 text-green-800 badge-delivered',
+      CANCELLED:  'bg-red-100 text-red-800 badge-cancelled',
     };
-    return colors[status] || 'bg-slate-100 text-slate-800';
+    return colors[status] || 'bg-slate-100 text-slate-800 badge-default';
   };
 
   const getStatusLabel = (status: string) => {
@@ -109,21 +108,25 @@ export default function DashboardPage() {
           title={td('stats.totalOrders')}
           value={stats?.totalOrders || 0}
           icon={ShoppingCart}
+          glowColor="cyan"
         />
         <StatCard
           title={td('stats.totalRevenue')}
           value={formatCurrency(stats?.totalRevenue || 0)}
           icon={DollarSign}
+          glowColor="emerald"
         />
         <StatCard
           title={td('stats.customers')}
           value={stats?.totalCustomers || 0}
           icon={Users}
+          glowColor="violet"
         />
         <StatCard
           title={td('stats.products')}
           value={stats?.totalProducts || 0}
           icon={Package}
+          glowColor="amber"
         />
       </div>
 

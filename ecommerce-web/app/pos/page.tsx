@@ -1,265 +1,107 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback, useTransition } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Search, Loader2 } from 'lucide-react';
-import { productsApi } from '@/lib/api/products';
-import { customersApi } from '@/lib/api/customers';
-import { ordersApi } from '@/lib/api/orders';
-import { categoriesApi } from '@/lib/api/categories';
-import { Product, Customer, Category, PaymentStatus, OrderStatus } from '@/lib/types';
-import { toast } from 'sonner';
-import { CartItem } from '@/lib/interfaces/cart-item';
-import { AppliedCoupon } from '@/lib/interfaces/appliedCoupon';
-import CheckoutPanel from './(components)/CheckoutPanel';
-import CheckoutModal, { PaymentSplit } from './(components)/CheckoutModal';
+import { Loader2 } from 'lucide-react';
+import CheckoutModal from './(components)/CheckoutModal';
 import CouponModal from './(components)/CouponModal';
-import ProductCard from './(components)/ProductCard';
 import CustomerModal from './(components)/CustomerModal';
-import SaleSuccessModal from './(components)/SaleSuccessModal';
 import POSSidebar, { POSSection } from './(components)/POSSidebar';
+import { POSCobrarSection } from './(components)/POSCobrarSection';
+import SaleSuccessModal from './(components)/SaleSuccessModal';
 import VentasSection from './(components)/VentasSection';
 import ClientesSection from './(components)/ClientesSection';
 import InventarioSection from './(components)/InventarioSection';
 import PromocionesSection from './(components)/PromocionesSection';
+import {
+  usePOSClock,
+  usePOSData,
+  usePOSCart,
+  usePOSModals,
+  usePOSOrder,
+} from './hooks';
 
-// ─── Main POS Page ────────────────────────────────────────────────────────────
 export default function POSPage() {
   const router = useRouter();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
-  const [appliedCoupons, setAppliedCoupons] = useState<AppliedCoupon[]>([]);
-  const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Modal states
-  const [customerModalOpen, setCustomerModalOpen] = useState(false);
-  const [couponModalOpen, setCouponModalOpen] = useState(false);
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [saleSuccess, setSaleSuccess] = useState<{
-    orderId: string;
-    orderNumber: string;
-    total: number;
-    paymentMethod: string;
-  } | null>(null);
-
-  const [isPending, startTransition] = useTransition();
-  const [creatingOrder, setCreatingOrder] = useState(false);
+  const currentTime = usePOSClock();
   const [activeSection, setActiveSection] = useState<POSSection>('cobrar');
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
 
-  // Clock
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const {
+    products,
+    customers,
+    categories,
+    loading,
+    search,
+    setSearch,
+    categoryFilter,
+    setCategoryFilter,
+    isPending,
+  } = usePOSData();
 
-  // Load initial data
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        setLoading(true);
-        const [customersRes, categoriesRes] = await Promise.all([
-          customersApi.getAll(),
-          categoriesApi.getAll(),
-        ]);
-        setCustomers(customersRes.data.data || customersRes.data);
-        setCategories(categoriesRes.data);
-      } catch {
-        toast.error('Error al cargar datos iniciales');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadInitialData();
-  }, []);
+  const {
+    cart,
+    appliedCoupons,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    applyCoupon,
+    removeCoupon,
+    subtotal,
+    discount,
+    total,
+    totalItems,
+    canCheckout: cartCanCheckout,
+    clearCartAndCoupons,
+  } = usePOSCart();
 
-  // Load products
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const params: any = { status: 'ACTIVE', limit: 100 };
-        if (search) params.search = search;
-        if (categoryFilter) params.categoryId = categoryFilter;
+  const {
+    customerModalOpen,
+    setCustomerModalOpen,
+    couponModalOpen,
+    setCouponModalOpen,
+    checkoutModalOpen,
+    setCheckoutModalOpen,
+    saleSuccess,
+    showSaleSuccess,
+    closeSaleSuccess,
+  } = usePOSModals();
 
-        const response = await productsApi.getAll(params);
-        startTransition(() => {
-          setProducts(response.data.data);
-        });
-      } catch {
-        toast.error('Error al cargar productos');
-      }
-    };
-    loadProducts();
-  }, [search, categoryFilter]);
-
-  // Derived customer
   const selectedCustomer = useMemo(
-    () => customers.find((c) => c.id === selectedCustomerId),
+    () => customers.find((c) => c.id === selectedCustomerId) ?? null,
     [customers, selectedCustomerId]
   );
 
-  // Cart operations
-  const addToCart = useCallback((product: Product) => {
-    setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.product.id === product.id);
-      if (existing) {
-        if (existing.quantity + 1 > product.stock) {
-          toast.error('Stock insuficiente');
-          return prevCart;
-        }
-        return prevCart.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prevCart, { product, quantity: 1 }];
-    });
-  }, []);
+  const { creatingOrder, handleCreateOrder } = usePOSOrder({
+    cart,
+    appliedCoupons,
+    selectedCustomerId,
+    onSuccess: showSaleSuccess,
+    clearCartAndCoupons,
+    closeCheckoutModal: () => setCheckoutModalOpen(false),
+  });
 
-  const updateQuantity = useCallback((productId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
-      return;
-    }
-    setCart((prevCart) => {
-      const item = prevCart.find((item) => item.product.id === productId);
-      if (item && newQuantity > item.product.stock) {
-        toast.error('Stock insuficiente');
-        return prevCart;
-      }
-      return prevCart.map((item) =>
-        item.product.id === productId ? { ...item, quantity: newQuantity } : item
-      );
-    });
-  }, []);
-
-  const removeFromCart = useCallback((productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
-  }, []);
-
-  // Calculations
-  const subtotal = useMemo(
-    () => cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
-    [cart]
-  );
-
-  const discount = useMemo(() => {
-    let total = 0;
-    for (const coupon of appliedCoupons) {
-      let d = 0;
-      if (coupon.type === 'PERCENTAGE') {
-        d = (subtotal * coupon.value) / 100;
-      } else if (coupon.type === 'FIXED_AMOUNT') {
-        d = coupon.value;
-      }
-      if (coupon.maxDiscount && d > coupon.maxDiscount) d = coupon.maxDiscount;
-      total += d;
-    }
-    return total;
-  }, [appliedCoupons, subtotal]);
-
-  const total = useMemo(() => subtotal - discount, [subtotal, discount]);
-  const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
-
-  const canCheckout = useMemo(
-    () => cart.length > 0 && !creatingOrder,
-    [cart.length, creatingOrder]
-  );
-
-  // Coupon handlers
-  const handleApplyCoupon = useCallback((coupon: AppliedCoupon) => {
-    setAppliedCoupons((prev) => [...prev, coupon]);
-  }, []);
-
-  const handleRemoveCoupon = useCallback((code: string) => {
-    setAppliedCoupons((prev) => prev.filter((c) => c.code !== code));
-  }, []);
-
-  // Order creation (cliente y cupones opcionales — venta rápida al público general)
-  const handleCreateOrder = useCallback(async (payments: PaymentSplit[]) => {
-    if (cart.length === 0) return;
-
-    // Primary method = the one with the highest amount
-    const primaryMethod = payments.reduce((a, b) => (b.amount > a.amount ? b : a)).method;
-    // Human-readable label for the success modal
-    const methodLabel = payments.length > 1
-      ? payments.map((p) => p.method).join(' + ')
-      : primaryMethod;
-
-    try {
-      setCreatingOrder(true);
-      const orderData: Parameters<typeof ordersApi.create>[0] = {
-        items: cart.map((item) => ({
-          productId: item.product.id,
-          quantity: item.quantity,
-          price: item.product.price,
-        })),
-        paymentMethod: primaryMethod,
-        ...(payments.length > 1 && { payments: payments.map((p) => ({ method: p.method, amount: p.amount })) }),
-        paymentStatus: PaymentStatus.PAID,
-        shippingCost: 0,
-        notes: '',
-        status: OrderStatus.CONFIRMED,
-      };
-      if (selectedCustomerId) orderData.customerId = selectedCustomerId;
-      if (appliedCoupons[0]?.code) orderData.couponCode = appliedCoupons[0].code;
-
-      const response = await ordersApi.create(orderData);
-
-      setCheckoutModalOpen(false);
-      setCart([]);
-      setAppliedCoupons([]);
-
-      setSaleSuccess({
-        orderId: response.data.id,
-        orderNumber: response.data.orderNumber,
-        total: response.data.total,
-        paymentMethod: methodLabel,
-      });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Error al registrar venta';
-      toast.error(message);
-    } finally {
-      setCreatingOrder(false);
-    }
-  }, [cart, selectedCustomerId, appliedCoupons]);
+  const canCheckout = cartCanCheckout && !creatingOrder;
 
   const handleNewCustomer = useCallback(() => {
     router.push('/customers/new');
   }, [router]);
 
   const handleNewSale = useCallback(() => {
-    setSaleSuccess(null);
+    closeSaleSuccess();
     setSelectedCustomerId('');
-  }, []);
+  }, [closeSaleSuccess]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
-        <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+        <Loader2 className="h-4 w-4 animate-spin text-slate-400" aria-hidden />
       </div>
     );
   }
 
   return (
     <div className="h-screen flex overflow-hidden bg-slate-50">
-      {/* POS Sidebar */}
       <POSSidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
@@ -268,85 +110,36 @@ export default function POSPage() {
         currentTime={currentTime}
       />
 
-      {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* ── Cobrar (main POS) ── */}
-        {activeSection === 'cobrar' && (
-          <>
-            {/* Search & Filters */}
-            <div className="border-b border-slate-200/60 bg-white/60 backdrop-blur-sm px-4 md:px-6 py-3 md:py-4 shrink-0">
-              <div className="flex gap-2 md:gap-3">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Buscar producto..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 h-10 md:h-11 bg-white/60 border-slate-200/80"
-                  />
-                </div>
-                <Select
-                  value={categoryFilter || 'all'}
-                  onValueChange={(value) => setCategoryFilter(value === 'all' ? '' : value)}
-                >
-                  <SelectTrigger className="w-32 md:w-48 h-10 md:h-11 bg-white/60 border-slate-200/80">
-                    <SelectValue placeholder="Categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        {activeSection === 'cobrar' ? (
+          <POSCobrarSection
+            search={search}
+            onSearchChange={setSearch}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={setCategoryFilter}
+            categories={categories}
+            products={products}
+            isProductsPending={isPending}
+            onAddToCart={addToCart}
+            cart={cart}
+            updateQuantity={updateQuantity}
+            removeFromCart={removeFromCart}
+            setCustomerModalOpen={setCustomerModalOpen}
+            setCouponModalOpen={setCouponModalOpen}
+            setCheckoutModalOpen={setCheckoutModalOpen}
+            selectedCustomer={selectedCustomer}
+            appliedCoupons={appliedCoupons}
+            discount={discount}
+            subtotal={subtotal}
+            total={total}
+            totalItems={totalItems}
+            canCheckout={canCheckout}
+          />
+        ) : null}
 
-            {/* Products + Checkout Panel */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3">
-                  {products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onAddToCart={addToCart}
-                    />
-                  ))}
-                </div>
-                {products.length === 0 && !isPending && (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-slate-400 text-sm">No se encontraron productos</p>
-                  </div>
-                )}
-              </div>
+        {activeSection === 'ventas' ? <VentasSection /> : null}
 
-              <CheckoutPanel
-                totalItems={totalItems}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                removeFromCart={removeFromCart}
-                setCustomerModalOpen={setCustomerModalOpen}
-                setCouponModalOpen={setCouponModalOpen}
-                setCheckoutModalOpen={setCheckoutModalOpen}
-                selectedCustomer={selectedCustomer as Customer | null}
-                appliedCoupons={appliedCoupons}
-                discount={discount}
-                subtotal={subtotal}
-                total={total}
-                canCheckout={canCheckout}
-              />
-            </div>
-          </>
-        )}
-
-        {/* ── Mis Ventas ── */}
-        {activeSection === 'ventas' && <VentasSection />}
-
-        {/* ── Clientes ── */}
-        {activeSection === 'clientes' && (
+        {activeSection === 'clientes' ? (
           <ClientesSection
             customers={customers}
             selectedCustomerId={selectedCustomerId}
@@ -354,25 +147,22 @@ export default function POSPage() {
             onNewCustomer={handleNewCustomer}
             onSelectionDone={() => setActiveSection('cobrar')}
           />
-        )}
+        ) : null}
 
-        {/* ── Inventario ── */}
-        {activeSection === 'inventario' && (
+        {activeSection === 'inventario' ? (
           <InventarioSection products={products} />
-        )}
+        ) : null}
 
-        {/* ── Promociones ── */}
-        {activeSection === 'promociones' && (
+        {activeSection === 'promociones' ? (
           <PromocionesSection
             onApply={() => {
               setActiveSection('cobrar');
               setCouponModalOpen(true);
             }}
           />
-        )}
+        ) : null}
       </div>
 
-      {/* Modals */}
       <CustomerModal
         open={customerModalOpen}
         onClose={() => setCustomerModalOpen(false)}
@@ -386,8 +176,8 @@ export default function POSPage() {
         open={couponModalOpen}
         onClose={() => setCouponModalOpen(false)}
         appliedCoupons={appliedCoupons}
-        onApplyCoupon={handleApplyCoupon}
-        onRemoveCoupon={handleRemoveCoupon}
+        onApplyCoupon={applyCoupon}
+        onRemoveCoupon={removeCoupon}
         subtotal={subtotal}
         selectedCustomer={selectedCustomerId}
       />
@@ -396,7 +186,7 @@ export default function POSPage() {
         open={checkoutModalOpen}
         onClose={() => setCheckoutModalOpen(false)}
         cart={cart}
-        customer={selectedCustomer}
+        customer={selectedCustomer ?? undefined}
         appliedCoupons={appliedCoupons}
         subtotal={subtotal}
         discount={discount}
@@ -406,11 +196,11 @@ export default function POSPage() {
       />
 
       <SaleSuccessModal
-        open={!!saleSuccess}
+        open={saleSuccess !== null}
         orderNumber={saleSuccess?.orderNumber ?? ''}
         total={saleSuccess?.total ?? 0}
         paymentMethod={saleSuccess?.paymentMethod ?? 'CASH'}
-        customer={selectedCustomer}
+        customer={selectedCustomer ?? undefined}
         autoCloseSecs={4}
         onClose={handleNewSale}
       />

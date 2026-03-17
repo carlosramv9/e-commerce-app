@@ -36,7 +36,7 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-blue-50/40 to-indigo-50/60">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-100 via-blue-50/40 to-indigo-50/60 dark:bg-none dark:bg-[#373A49]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto" />
           <p className="mt-4 text-slate-500">{tc('loading')}</p>
@@ -50,16 +50,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50/40 to-indigo-50/60">
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-100/60 blur-3xl" />
-        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] rounded-full bg-blue-50/80 blur-3xl" />
+    <div className="pl-64">
+      <div className="absolute inset-0 min-h-screen w-full bg-white overflow-hidden">
+        <div className="relative min-h-screen w-full bg-gray-400/25 dark:bg-[#373A49] overflow-hidden">
+          <div className="absolute top-[50%] left-[5%] w-[500px] h-[500px] bg-gray-700/10 rounded-full blur-[120px] dark:bg-gray-700/30"></div>
+          <div className="absolute top-[20%] -right-[5%] w-[400px] h-[400px] bg-blue-900/10 rounded-full blur-[100px] dark:bg-blue-900/20"></div>
+          <div className="absolute -bottom-[10%] left-[20%] w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[130px] dark:bg-indigo-900/20"></div>
+        </div>
       </div>
       <Sidebar />
-      <div className="pl-64">
-        <Header />
-        <main className="p-6 min-h-screen">{children}</main>
-      </div>
+      <Header />
+      <main className="p-6">{children}</main>
     </div>
   );
 }
