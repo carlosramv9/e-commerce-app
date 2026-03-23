@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { User, LoginDto, AuthResponse, TenantSummary } from '../types';
+import { User, LoginDto, AuthResponse, TenantSummary, SelectTenantResponse } from '../types';
 import apiClient from '../api/client';
 
 interface AuthState {
@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (credentials: LoginDto) => {
     const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-    const { user, accessToken, tenant, availableTenants } = response.data;
+    const { user, accessToken, availableTenants } = response.data;
 
     localStorage.setItem('token', accessToken);
 
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token: accessToken,
       isAuthenticated: true,
       isLoading: false,
-      currentTenant: tenant ?? null,
+      currentTenant: null,
       availableTenants: availableTenants ?? [],
     });
 
@@ -49,15 +49,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   selectTenant: async (slug: string) => {
-    const response = await apiClient.patch<{ tenant: TenantSummary }>(
+    const response = await apiClient.patch<SelectTenantResponse>(
       `/auth/select-tenant/${slug}`,
     );
-    const { tenant } = response.data;
+    const { tenant, accessToken } = response.data;
+
+    localStorage.setItem('token', accessToken);
 
     set((state) => ({
+      token: accessToken,
       currentTenant: tenant,
       availableTenants: state.availableTenants,
-      currentBranchId: null, // reset branch when changing tenant
+      currentBranchId: null,
     }));
   },
 

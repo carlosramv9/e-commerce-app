@@ -184,19 +184,19 @@ const CheckoutModal = ({
 
                     {/* Items */}
                     <div className="px-5 py-4 border-b border-white/40">
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                        <p className="text-xs font-semibold text-slate-400 dark:text-white/30 uppercase tracking-wide mb-3">
                             Productos ({cart.length})
                         </p>
                         <div className="space-y-2.5">
                             {cart.map((item) => (
                                 <div key={item.product.id} className="flex justify-between items-start gap-3">
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-slate-800 truncate">{item.product.name}</p>
-                                        <p className="text-xs text-slate-400 font-mono">
+                                        <p className="text-sm text-slate-800 dark:text-white truncate">{item.product.name}</p>
+                                        <p className="text-xs text-slate-400 dark:text-white/40 font-mono">
                                             {item.quantity} × {currencyFormatter.format(item.product.price)}
                                         </p>
                                     </div>
-                                    <p className="text-sm font-mono font-semibold text-slate-800 shrink-0">
+                                    <p className="text-sm font-mono font-semibold text-slate-800 dark:text-white shrink-0">
                                         {currencyFormatter.format(item.product.price * item.quantity)}
                                     </p>
                                 </div>
@@ -207,8 +207,8 @@ const CheckoutModal = ({
                     {/* Totals */}
                     <div className="px-5 py-4 border-b border-white/40 space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span className="text-slate-600">Subtotal</span>
-                            <span className="font-mono text-slate-800">{currencyFormatter.format(subtotal)}</span>
+                            <span className="text-slate-600 dark:text-white/50">Subtotal</span>
+                            <span className="font-mono text-slate-800 dark:text-white">{currencyFormatter.format(subtotal)}</span>
                         </div>
                         {discount > 0 && (
                             <div className="flex justify-between text-sm">
@@ -221,15 +221,15 @@ const CheckoutModal = ({
                         )}
                         <Separator />
                         <div className="flex justify-between">
-                            <span className="font-semibold text-slate-800">Total</span>
-                            <span className="font-mono font-bold text-xl text-slate-800">{currencyFormatter.format(total)}</span>
+                            <span className="font-semibold text-slate-800 dark:text-white">Total</span>
+                            <span className="font-mono font-bold text-xl text-slate-800 dark:text-white">{currencyFormatter.format(total)}</span>
                         </div>
                     </div>
 
                     {/* Payment section */}
                     <div className="px-5 py-4">
                         <div className="flex items-center justify-between mb-3">
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                            <p className="text-xs font-semibold text-slate-400 dark:text-white/30 uppercase tracking-wide">
                                 {isMultiple ? 'Pago Dividido' : 'Método de Pago'}
                             </p>
                             {splits.length < MAX_SPLITS && (
@@ -247,12 +247,12 @@ const CheckoutModal = ({
                             {splits.map((split, index) => (
                                 <div
                                     key={split.id}
-                                    className="rounded-xl border border-white/50 p-3 bg-white/30 backdrop-blur-sm"
+                                    className="rounded-xl border border-white/50 p-3 bg-white/30 backdrop-blur-sm dark:bg-white/[0.04] dark:border-white/[0.10]"
                                 >
                                     {/* Split header (only in multi-split mode) */}
                                     {isMultiple && (
                                         <div className="flex items-center justify-between mb-2.5">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
                                                 Pago {index + 1}
                                             </span>
                                             {index > 0 && (
@@ -278,8 +278,8 @@ const CheckoutModal = ({
                                                     onClick={() => updateMethod(split.id, m.id)}
                                                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                         selected
-                                                            ? 'border-slate-700 bg-slate-800 text-white shadow-sm'
-                                                            : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70'
+                                                            ? 'border-slate-700 bg-slate-800 text-white shadow-sm dark:border-indigo-500 dark:bg-indigo-600'
+                                                            : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70 dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60 dark:hover:bg-white/[0.10]'
                                                     }`}
                                                 >
                                                     <Icon className="h-3.5 w-3.5" />
@@ -293,8 +293,8 @@ const CheckoutModal = ({
                                                 onClick={() => toggleRemainingSplit(split.id)}
                                                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                     split.isRemaining
-                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                        : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70'
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/[0.15] dark:text-emerald-300 dark:border-emerald-500/[0.30]'
+                                                        : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70 dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60 dark:hover:bg-white/[0.10]'
                                                 }`}
                                             >
                                                 {split.isRemaining ? 'Quitar resto' : 'Resto aquí'}
@@ -335,7 +335,7 @@ const CheckoutModal = ({
                                                     step="0.01"
                                                     value={split.amount}
                                                     onChange={(e) => updateAmount(split.id, e.target.value)}
-                                                    className="w-full pl-6 pr-3 py-2 border border-white/50 bg-white/60 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-slate-300/60 focus:border-transparent"
+                                                    className="w-full pl-6 pr-3 py-2 border border-white/50 bg-white/60 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-slate-300/60 focus:border-transparent dark:bg-white/[0.05] dark:border-white/[0.10] dark:text-white dark:focus:ring-indigo-500/40"
                                                 />
                                             )}
                                         </div>
@@ -373,7 +373,7 @@ const CheckoutModal = ({
                 </div>
 
                 {/* Actions */}
-                <div className="border-t border-white/40 px-5 py-4 flex gap-3 bg-white/20 backdrop-blur-sm">
+                <div className="border-t border-white/40 px-5 py-4 flex gap-3 bg-white/20 backdrop-blur-sm dark:bg-white/[0.03]">
                     <Button
                         variant="outline"
                         className="flex-1"

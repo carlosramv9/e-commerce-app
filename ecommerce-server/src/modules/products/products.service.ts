@@ -19,7 +19,7 @@ export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private tenantContext: TenantContextService,
-  ) {}
+  ) { }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const tenantId = this.tenantContext.requireTenantId();
@@ -69,7 +69,7 @@ export class ProductsService {
     queryDto: QueryProductDto,
   ): Promise<PaginatedResponse<Product>> {
     const { skip, limit, page, search, categoryId, status } = queryDto;
-
+    console.log('Im here');
     const tenantId = this.tenantContext.requireTenantId();
     const where: Prisma.ProductWhereInput = { tenantId };
 

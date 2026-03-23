@@ -128,7 +128,8 @@ function Sidebar({
       data-state={state}
       data-collapsible={collapsible}
       className={cn(
-        "relative flex h-full shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-[#FAFBFD] dark:bg-slate-900 dark:border-slate-800 transition-[width] duration-200 ease-linear",
+        "relative flex h-full shrink-0 flex-col overflow-hidden  transition-[width] duration-200 ease-linear backdrop-blur-[10px] shadow-[0_4px_30px_rgba(0,0,0,0.1)] ease-cubic-bezier(0.4,0,0.2,1) bg-[#F9F9F9]",
+        "dark:bg-[linear-gradient(145deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.08)_50%,rgba(255,255,255,0.03)_100%)]",
         collapsible === "icon"
           ? state === "expanded"
             ? "w-(--sidebar-width)"
@@ -216,8 +217,8 @@ const sidebarMenuButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "text-slate-700 hover:text-slate-800 hover:bg-slate-100",
-        active: "bg-slate-100 text-slate-800",
+        default: "text-slate-700 hover:text-slate-800 hover:bg-slate-100 dark:text-white/80 dark:hover:bg-[#37393D]",
+        active: "bg-slate-100 text-slate-800 dark:bg-[#37393D] dark:text-white/80 dark:hover:bg-[#37393D]",
       },
     },
     defaultVariants: { variant: "default" },
@@ -226,7 +227,7 @@ const sidebarMenuButtonVariants = cva(
 
 interface SidebarMenuButtonProps
   extends React.ComponentProps<"button">,
-    VariantProps<typeof sidebarMenuButtonVariants> {
+  VariantProps<typeof sidebarMenuButtonVariants> {
   asChild?: boolean
   isActive?: boolean
   tooltip?: string

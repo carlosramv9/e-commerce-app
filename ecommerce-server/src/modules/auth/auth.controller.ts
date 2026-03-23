@@ -7,10 +7,19 @@ import {
   AuthResponseDto,
   ProfileResponseDto,
   SelectTenantResponseDto,
+  SelectBranchResponseDto,
 } from './dto/auth-response.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { User } from '@prisma/client';
+import { TenantRole } from '@prisma/client';
+
+type AuthUser = {
+  id: string;
+  email: string;
+  tenantId?: string;
+  tenantRole?: TenantRole;
+  branchId?: string;
+};
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -26,7 +35,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @ApiOperation({ summary: 'Login user' })
+  @ApiOperation({ summary: 'Login — returns preliminary JWT + available tenants' })
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
   }
@@ -34,27 +43,33 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile with active tenant/branch' })
-  async getProfile(@CurrentUser() user: User): Promise<ProfileResponseDto> {
+  async getProfile(@CurrentUser() user: AuthUser): Promise<ProfileResponseDto> {
     return this.authService.getProfile(user.id);
   }
 
   @Patch('select-tenant/:slug')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Select active tenant — saves to user record, no new JWT needed' })
+  @ApiOperation({ summary: 'Select active tenant — returns new JWT with tenantId embedded' })
   selectTenant(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthUser,
     @Param('slug') slug: string,
   ): Promise<SelectTenantResponseDto> {
-    return this.authService.selectTenant(user.id, slug);
+    return this.authService.selectTenant(user.id, user.email, slug);
   }
 
   @Patch('select-branch/:branchId')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Select active branch — saves to user record' })
+  @ApiOperation({ summary: 'Select active branch — returns new JWT with branchId embedded' })
   selectBranch(
-    @CurrentUser() user: User,
+    @CurrentUser() user: AuthUser,
     @Param('branchId') branchId: string,
-  ): Promise<{ branchId: string }> {
-    return this.authService.selectBranch(user.id, branchId);
+  ): Promise<SelectBranchResponseDto> {
+    return this.authService.selectBranch(
+      user.id,
+      user.email,
+      user.tenantId,
+      user.tenantRole,
+      branchId,
+    );
   }
 }

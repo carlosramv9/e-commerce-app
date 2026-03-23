@@ -77,22 +77,22 @@ const CustomerModal = ({
                                 <button
                                     key={customer.id}
                                     onClick={() => handleSelect(customer.id)}
-                                    className={`w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-white/50 transition-colors border-b border-white/40 last:border-0 ${isSelected ? 'bg-slate-100/60' : ''
+                                    className={`w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-white/50 transition-colors border-b border-white/40 last:border-0 dark:hover:bg-white/[0.05] dark:border-white/[0.06] ${isSelected ? 'bg-slate-100/60 dark:bg-white/[0.08]' : ''
                                         }`}
                                 >
-                                    <div className="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center shrink-0">
-                                        <span className="text-sm font-semibold text-slate-600">
+                                    <div className="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center shrink-0 dark:bg-white/[0.08]">
+                                        <span className="text-sm font-semibold text-slate-600 dark:text-white/70">
                                             {customer.firstName[0]}{customer.lastName[0]}
                                         </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-slate-800 truncate">
+                                        <p className="text-sm font-medium text-slate-800 dark:text-white truncate">
                                             {customer.firstName} {customer.lastName}
                                         </p>
-                                        <p className="text-xs text-slate-400 truncate">{customer.email}</p>
+                                        <p className="text-xs text-slate-400 dark:text-white/40 truncate">{customer.email}</p>
                                     </div>
                                     {isSelected && (
-                                        <Check className="h-4 w-4 text-slate-600 shrink-0" />
+                                        <Check className="h-4 w-4 text-slate-600 dark:text-white/60 shrink-0" />
                                     )}
                                 </button>
                             );
@@ -101,17 +101,17 @@ const CustomerModal = ({
                 </div>
 
                 {/* New customer button */}
-                <div className="border-t border-white/40 p-4 bg-white/20 backdrop-blur-sm">
+                <div className="border-t border-white/40 p-4 bg-white/20 backdrop-blur-sm dark:bg-white/[0.03]">
                     <button
                         onClick={() => { onNewCustomer(); onClose(); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 border-dashed border-white/50 hover:border-slate-300 hover:bg-white/50 transition-all text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 border-dashed border-white/50 hover:border-slate-300 hover:bg-white/50 transition-all text-left dark:border-white/[0.10] dark:hover:border-white/[0.25] dark:hover:bg-white/[0.05]"
                     >
-                        <div className="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center shrink-0">
-                            <UserPlus className="h-4 w-4 text-slate-600" />
+                        <div className="w-9 h-9 rounded-full bg-slate-100/80 flex items-center justify-center shrink-0 dark:bg-white/[0.08]">
+                            <UserPlus className="h-4 w-4 text-slate-600 dark:text-white/60" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-slate-700">Registrar nuevo cliente</p>
-                            <p className="text-xs text-slate-400">Ir al formulario de alta</p>
+                            <p className="text-sm font-medium text-slate-700 dark:text-white/80">Registrar nuevo cliente</p>
+                            <p className="text-xs text-slate-400 dark:text-white/40">Ir al formulario de alta</p>
                         </div>
                     </button>
                 </div>

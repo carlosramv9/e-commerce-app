@@ -73,7 +73,7 @@ const CouponModal = ({
 
                 {/* Add coupon */}
                 <div className="px-4 py-4 border-b border-white/40">
-                    <label className="block text-xs font-medium text-slate-600 mb-2">
+                    <label className="block text-xs font-medium text-slate-600 dark:text-white/50 mb-2">
                         Agregar código de cupón
                     </label>
                     <div className="flex gap-2">
@@ -82,7 +82,7 @@ const CouponModal = ({
                             value={code}
                             onChange={(e) => setCode(e.target.value.toUpperCase())}
                             onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
-                            className="h-10 font-mono uppercase text-sm border-white/50 bg-white/60 focus:ring-slate-300/60"
+                            className="h-10 font-mono uppercase text-sm border-white/50 bg-white/60 focus:ring-slate-300/60 dark:bg-white/[0.05] dark:border-white/[0.10] dark:text-white dark:placeholder:text-white/30"
                             autoFocus
                         />
                         <Button
@@ -107,18 +107,18 @@ const CouponModal = ({
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            <p className="text-xs font-medium text-slate-600 mb-2">Cupones aplicados</p>
+                            <p className="text-xs font-medium text-slate-600 dark:text-white/50 mb-2">Cupones aplicados</p>
                             {appliedCoupons.map((coupon) => (
                                 <div
                                     key={coupon.code}
-                                    className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5"
+                                    className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 dark:bg-emerald-500/[0.10] dark:border-emerald-500/[0.20]"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Tag className="h-3.5 w-3.5 text-emerald-600" />
-                                        <span className="font-mono font-semibold text-sm text-emerald-800">
+                                        <Tag className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                        <span className="font-mono font-semibold text-sm text-emerald-800 dark:text-emerald-300">
                                             {coupon.code}
                                         </span>
-                                        <span className="text-xs text-emerald-600">
+                                        <span className="text-xs text-emerald-600 dark:text-emerald-400">
                                             {coupon.type === 'PERCENTAGE'
                                                 ? `${coupon.value}% off`
                                                 : coupon.type === 'FIXED_AMOUNT'
@@ -138,7 +138,7 @@ const CouponModal = ({
                     )}
                 </div>
 
-                <div className="px-4 pb-4 bg-white/20 backdrop-blur-sm">
+                <div className="px-4 pb-4 bg-white/20 backdrop-blur-sm dark:bg-white/[0.03]">
                     <Button variant="outline" className="w-full" onClick={onClose}>
                         Listo
                     </Button>

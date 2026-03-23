@@ -34,7 +34,7 @@ export class ProductsController {
   }
 
   @Get()
-  @Public()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all products with pagination and filters' })
   findAll(@Query() queryDto: QueryProductDto) {
     return this.productsService.findAll(queryDto);

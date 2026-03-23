@@ -153,7 +153,7 @@ export default function SaleSuccessModal({
           <DialogTitle className="sr-only">Venta completada</DialogTitle>
 
           {/* ── Hero (gradient top) ───────────────────────────────────────── */}
-          <div className="relative bg-linear-to-b from-emerald-50 via-emerald-50/60 to-white pt-12 pb-8 flex flex-col items-center">
+          <div className="relative bg-linear-to-b from-emerald-50 via-emerald-50/60 to-white pt-12 pb-8 flex flex-col items-center dark:from-emerald-900/[0.30] dark:via-emerald-900/[0.15] dark:to-[#020617]">
 
             {/* Confetti particles */}
             <div className="absolute inset-0 flex items-start justify-center pointer-events-none overflow-hidden pt-12">
@@ -175,7 +175,7 @@ export default function SaleSuccessModal({
             {/* Checkmark + countdown ring */}
             <div className="relative z-10 flex items-center justify-center">
               {showCircle && (
-                <div className="absolute w-28 h-28 rounded-full bg-emerald-100 sale-pulse-ring" />
+                <div className="absolute w-28 h-28 rounded-full bg-emerald-100 dark:bg-emerald-500/[0.15] sale-pulse-ring" />
               )}
 
               {showCircle && (
@@ -238,10 +238,10 @@ export default function SaleSuccessModal({
                 <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase mb-1">
                   Pago confirmado
                 </p>
-                <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">
                   ¡Venta completada!
                 </h2>
-                <p className="text-sm text-neutral-400 mt-1 font-mono">{orderNumber}</p>
+                <p className="text-sm text-neutral-400 dark:text-white/40 mt-1 font-mono">{orderNumber}</p>
               </div>
             )}
           </div>
@@ -265,17 +265,17 @@ export default function SaleSuccessModal({
 
               {/* Payment + Customer */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-white/40 bg-neutral-50 px-3 py-3.5">
+                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-white/40 bg-neutral-50 px-3 py-3.5 dark:bg-white/[0.05] dark:border-white/[0.08]">
                   <span className="text-2xl leading-none">{PAYMENT_EMOJIS[paymentMethod] ?? '💳'}</span>
-                  <span className="text-xs text-neutral-500">Método</span>
-                  <span className="text-sm font-semibold text-neutral-800">
+                  <span className="text-xs text-neutral-500 dark:text-white/40">Método</span>
+                  <span className="text-sm font-semibold text-neutral-800 dark:text-white">
                     {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
                   </span>
                 </div>
-                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-white/40 bg-neutral-50 px-3 py-3.5">
+                <div className="flex flex-col items-center gap-1.5 rounded-xl border border-white/40 bg-neutral-50 px-3 py-3.5 dark:bg-white/[0.05] dark:border-white/[0.08]">
                   <span className="text-2xl leading-none">{customer ? '👤' : '🛒'}</span>
-                  <span className="text-xs text-neutral-500">Cliente</span>
-                  <span className="text-sm font-semibold text-neutral-800 text-center leading-tight line-clamp-2">
+                  <span className="text-xs text-neutral-500 dark:text-white/40">Cliente</span>
+                  <span className="text-sm font-semibold text-neutral-800 dark:text-white text-center leading-tight line-clamp-2">
                     {customer
                       ? `${customer.firstName} ${customer.lastName}`
                       : 'Público general'}

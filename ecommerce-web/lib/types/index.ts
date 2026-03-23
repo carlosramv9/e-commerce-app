@@ -410,10 +410,18 @@ export interface ApiError {
 export interface AuthResponse {
   user: User;
   accessToken: string;
-  tenant?: TenantSummary;
-  /** Returned when user has multiple tenants and no tenantSlug was sent */
-  availableTenants?: TenantSummary[];
-  currentBranchId?: string;
+  /** Always returned — empty array if user has no tenants */
+  availableTenants: TenantSummary[];
+}
+
+export interface SelectTenantResponse {
+  accessToken: string;
+  tenant: TenantSummary;
+}
+
+export interface SelectBranchResponse {
+  accessToken: string;
+  branchId: string;
 }
 
 export interface DashboardStats {

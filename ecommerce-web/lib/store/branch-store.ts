@@ -17,10 +17,13 @@ export const useBranchStore = create<BranchState>((set) => ({
   setCurrentBranch: async (branch) => {
     set({ currentBranch: branch });
     if (branch) {
-      // Persist to DB — backend reads this on every request
-      await apiClient.patch(`/auth/select-branch/${branch.id}`).catch(() => {
-        // Silent fail: the branch is set in UI state even if the API call fails
-      });
+      // Persist to DB and get new JWT with branchId embedded
+      const response = await apiClient
+        .patch<{ branchId: string; accessToken: string }>(`/auth/select-branch/${branch.id}`)
+        .catch(() => null);
+      if (response?.data.accessToken) {
+        localStorage.setItem('token', response.data.accessToken);
+      }
     }
   },
 

@@ -33,5 +33,11 @@ export class ProfileResponseDto {
 }
 
 export class SelectTenantResponseDto {
+  @ApiProperty() accessToken: string;
   @ApiProperty({ type: TenantSummaryDto }) tenant: TenantSummaryDto;
+}
+
+export class SelectBranchResponseDto {
+  @ApiProperty() accessToken: string;
+  @ApiProperty() branchId: string;
 }

@@ -41,8 +41,8 @@ export default function LoginPage() {
     try {
       const response = await login(data);
       toast.success('¡Inicio de sesión exitoso!');
-      // If user has multiple tenants and none was auto-selected, go to picker
-      if (!response.tenant && response.availableTenants && response.availableTenants.length > 0) {
+      // Always go to tenant picker if user has tenants (tenant is selected in step 2)
+      if (response.availableTenants && response.availableTenants.length > 0) {
         router.push('/select-tenant');
       } else {
         router.push('/dashboard');

@@ -17,9 +17,10 @@ import {
   TenantSummaryDto,
   ProfileResponseDto,
   SelectTenantResponseDto,
+  SelectBranchResponseDto,
 } from './dto/auth-response.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
-import { TenantMembership, Tenant } from '@prisma/client';
+import { TenantMembership, Tenant, TenantRole } from '@prisma/client';
 
 type MembershipWithTenant = TenantMembership & { tenant: Tenant };
 
@@ -69,58 +70,14 @@ export class AuthService {
     if (user.status !== 'ACTIVE') throw new UnauthorizedException('Account is not active');
 
     const memberships = user.tenantMemberships as MembershipWithTenant[];
-    const activeMemberships = memberships.filter(
-      (m) => m.tenant.status !== 'CANCELLED',
-    );
+    const activeMemberships = memberships.filter((m) => m.tenant.status !== 'CANCELLED');
 
-    // SUPER_ADMIN without tenantSlug: platform-level login
-    if (user.role === 'SUPER_ADMIN' && !loginDto.tenantSlug) {
-      const accessToken = this.generateToken({ sub: user.id, email: user.email });
-      return {
-        accessToken,
-        user: this.mapUser(user),
-        availableTenants: activeMemberships.map(this.mapMembership),
-      };
-    }
-
-    // No tenants at all
-    if (activeMemberships.length === 0) {
-      const accessToken = this.generateToken({ sub: user.id, email: user.email });
-      return { accessToken, user: this.mapUser(user) };
-    }
-
-    // Resolve which tenant to log into
-    let membership: MembershipWithTenant | undefined;
-
-    if (loginDto.tenantSlug) {
-      membership = activeMemberships.find((m) => m.tenant.slug === loginDto.tenantSlug);
-      if (!membership) throw new UnauthorizedException('Tenant not found or access denied');
-    } else if (activeMemberships.length === 1) {
-      membership = activeMemberships[0];
-    } else {
-      // Multiple tenants — ask client to pick
-      const accessToken = this.generateToken({ sub: user.id, email: user.email });
-      return {
-        accessToken,
-        user: this.mapUser(user),
-        availableTenants: activeMemberships.map(this.mapMembership),
-      };
-    }
-
-    // Auto-save the selected tenant to the user record
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        lastTenantSelectedId: membership.tenantId,
-        lastBranchSelectedId: null, // reset branch on new tenant
-      },
-    });
-
+    // Always issue a preliminary JWT (no tenantId) — client must call select-tenant next
     const accessToken = this.generateToken({ sub: user.id, email: user.email });
     return {
       accessToken,
       user: this.mapUser(user),
-      tenant: this.mapMembership(membership),
+      availableTenants: activeMemberships.map((m) => this.mapMembership(m)),
     };
   }
 
@@ -156,8 +113,12 @@ export class AuthService {
     };
   }
 
-  /** Save tenant selection to the user record. No new JWT needed. */
-  async selectTenant(userId: string, tenantSlug: string): Promise<SelectTenantResponseDto> {
+  /** Select tenant — saves to DB and returns a new JWT with tenantId embedded. */
+  async selectTenant(
+    userId: string,
+    userEmail: string,
+    tenantSlug: string,
+  ): Promise<SelectTenantResponseDto> {
     const membership = await this.prisma.tenantMembership.findFirst({
       where: { userId, tenant: { slug: tenantSlug } },
       include: { tenant: true },
@@ -172,26 +133,37 @@ export class AuthService {
       where: { id: userId },
       data: {
         lastTenantSelectedId: membership.tenantId,
-        lastBranchSelectedId: null, // reset branch when switching tenant
+        lastBranchSelectedId: null,
       },
     });
 
-    return { tenant: this.mapMembership(membership as MembershipWithTenant) };
-  }
-
-  /** Save branch selection to the user record. */
-  async selectBranch(userId: string, branchId: string): Promise<{ branchId: string }> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { lastTenantSelectedId: true },
+    const accessToken = this.generateToken({
+      sub: userId,
+      email: userEmail,
+      tenantId: membership.tenantId,
+      tenantRole: membership.role,
     });
 
-    if (!user?.lastTenantSelectedId) {
+    return {
+      accessToken,
+      tenant: this.mapMembership(membership as MembershipWithTenant),
+    };
+  }
+
+  /** Select branch — saves to DB and returns a new JWT with branchId embedded. */
+  async selectBranch(
+    userId: string,
+    userEmail: string,
+    tenantId: string | undefined,
+    tenantRole: TenantRole | undefined,
+    branchId: string,
+  ): Promise<SelectBranchResponseDto> {
+    if (!tenantId) {
       throw new BadRequestException('Select a tenant before selecting a branch');
     }
 
     const branch = await this.prisma.branch.findFirst({
-      where: { id: branchId, tenantId: user.lastTenantSelectedId, status: 'ACTIVE' },
+      where: { id: branchId, tenantId, status: 'ACTIVE' },
     });
 
     if (!branch) throw new NotFoundException('Branch not found or not accessible');
@@ -201,7 +173,15 @@ export class AuthService {
       data: { lastBranchSelectedId: branchId },
     });
 
-    return { branchId };
+    const accessToken = this.generateToken({
+      sub: userId,
+      email: userEmail,
+      tenantId,
+      tenantRole,
+      branchId,
+    });
+
+    return { branchId, accessToken };
   }
 
   private generateToken(payload: JwtPayload): string {

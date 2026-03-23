@@ -55,14 +55,14 @@ export default function BranchSelector() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="group flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <MapPin className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-          <span className="text-[16px] text-slate-600 truncate">
+          <MapPin className="h-3.5 w-3.5 text-slate-500 dark:text-white/40 shrink-0" />
+          <span className="text-[16px] text-slate-600 dark:text-white/60 truncate">
             {currentBranch?.name ?? 'Sin sucursal'}
           </span>
           {activeBranches.length > 1 && (
-            <ChevronDown className="h-3 w-3 text-slate-500 shrink-0 group-data-[state=open]:rotate-180 transition-transform" />
+            <ChevronDown className="h-3 w-3 text-slate-500 dark:text-white/40 shrink-0 group-data-[state=open]:rotate-180 transition-transform" />
           )}
         </button>
       </DropdownMenuTrigger>

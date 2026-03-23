@@ -94,14 +94,20 @@ export default function POSPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
-        <Loader2 className="h-4 w-4 animate-spin text-slate-400" aria-hidden />
+      <div className="flex items-center justify-center h-screen bg-[#FAFBFD] dark:bg-[#373A49]">
+        <Loader2 className="h-4 w-4 animate-spin text-slate-400 dark:text-white/30" aria-hidden />
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-slate-50">
+    <div className="h-screen flex overflow-hidden relative bg-[#FAFBFD] dark:bg-[#2c2e33]">
+      {/* Mesh gradient orbs — dark only */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="hidden dark:block absolute -top-24 -left-24 w-[500px] h-[500px] rounded-full blur-[120px]" />
+        <div className="hidden dark:block absolute top-[35%] -right-32 w-[600px] h-[600px] rounded-full blur-[140px]" />
+        <div className="hidden dark:block absolute -bottom-24 left-[15%] w-[500px] h-[500px] rounded-full blur-[110px]" />
+      </div>
       <POSSidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}

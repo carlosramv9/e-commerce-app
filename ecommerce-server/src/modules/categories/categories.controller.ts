@@ -31,7 +31,7 @@ export class CategoriesController {
   }
 
   @Get()
-  @Public()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all categories' })
   findAll() {
     return this.categoriesService.findAll();

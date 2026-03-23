@@ -3,10 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../../database/prisma.service';
+import { TenantRole } from '@prisma/client';
 
 export interface JwtPayload {
   sub: string;
   email: string;
+  tenantId?: string;
+  tenantRole?: TenantRole;
+  branchId?: string;
 }
 
 @Injectable()
@@ -31,6 +35,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    return user;
+    return {
+      ...user,
+      tenantId: payload.tenantId,
+      tenantRole: payload.tenantRole,
+      branchId: payload.branchId,
+    };
   }
 }

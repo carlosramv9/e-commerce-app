@@ -50,16 +50,16 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="border-b border-slate-100/80 bg-white/60 backdrop-blur-sm px-6 py-4 shrink-0">
+            <div className="border-b border-slate-100/80 bg-white/60 backdrop-blur-sm px-6 py-4 shrink-0 dark:bg-[rgba(15,23,42,0.5)] dark:backdrop-blur-[20px] dark:border-white/[0.08]">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-base font-semibold text-slate-800">Inventario</h2>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <h2 className="text-base font-semibold text-slate-800 dark:text-white">Inventario</h2>
+                        <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">
                             Vista de stock — solo lectura
                         </p>
                     </div>
                     {(lowStockCount > 0 || outCount > 0) && (
-                        <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100/80 border border-slate-200/60 px-3 py-1.5 rounded-lg">
+                        <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100/80 border border-slate-200/60 px-3 py-1.5 rounded-lg dark:text-amber-300 dark:bg-amber-500/[0.10] dark:border-amber-500/[0.20]">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             <span className="text-xs font-semibold">
                                 {outCount > 0 && `${outCount} agotado${outCount > 1 ? 's' : ''}`}
@@ -78,15 +78,15 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
                             onClick={() => setFilter(id)}
                             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
                                 filter === id
-                                    ? 'bg-slate-800 text-white border-slate-800'
-                                    : 'bg-white/60 text-slate-500 border-slate-200/60 hover:bg-white/80 hover:text-slate-700'
+                                    ? 'bg-slate-800 text-white border-slate-800 dark:bg-indigo-600 dark:border-indigo-600'
+                                    : 'bg-white/60 text-slate-500 border-slate-200/60 hover:bg-white/80 hover:text-slate-700 dark:bg-white/[0.05] dark:text-white/50 dark:border-white/[0.08] dark:hover:bg-white/[0.10] dark:hover:text-white/80'
                             }`}
                         >
                             {label}
                             {count !== undefined && (
                                 <span
                                     className={`ml-1.5 text-[10px] font-bold ${
-                                        filter === id ? 'text-white/60' : 'text-slate-400'
+                                        filter === id ? 'text-white/60' : 'text-slate-400 dark:text-white/30'
                                     }`}
                                 >
                                     {count}
@@ -97,12 +97,12 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
                 </div>
 
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-white/30" />
                     <Input
                         placeholder="Buscar por nombre o SKU..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9 h-9 text-sm bg-white/60 border-slate-200/80"
+                        className="pl-9 h-9 text-sm bg-white/60 border-slate-200/80 dark:bg-white/[0.05] dark:border-white/[0.08] dark:text-white dark:placeholder:text-white/30"
                     />
                 </div>
             </div>
@@ -111,10 +111,10 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
             <div className="flex-1 overflow-y-auto px-6 py-4">
                 {filtered.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center">
-                            <Package className="h-6 w-6 text-slate-300" />
+                        <div className="w-14 h-14 rounded-2xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center dark:bg-white/[0.05] dark:border-white/[0.08]">
+                            <Package className="h-6 w-6 text-slate-300 dark:text-white/20" />
                         </div>
-                        <p className="text-sm font-medium text-slate-400">Sin productos</p>
+                        <p className="text-sm font-medium text-slate-400 dark:text-white/30">Sin productos</p>
                     </div>
                 ) : (
                     <div className="space-y-1.5">
@@ -124,17 +124,17 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
                             const isOk   = !isOut && !isLow;
 
                             const stockStyle = isOut
-                                ? 'text-red-600 bg-red-50/80 border-red-200/80'
+                                ? 'text-red-600 bg-red-50/80 border-red-200/80 dark:text-red-300 dark:bg-red-500/[0.12] dark:border-red-500/[0.20]'
                                 : isLow
-                                ? 'text-amber-600 bg-amber-50/80 border-amber-200/80'
-                                : 'text-slate-500 bg-slate-100/80 border-slate-200/60';
+                                ? 'text-amber-600 bg-amber-50/80 border-amber-200/80 dark:text-amber-300 dark:bg-amber-500/[0.12] dark:border-amber-500/[0.20]'
+                                : 'text-slate-500 bg-slate-100/80 border-slate-200/60 dark:text-white/40 dark:bg-white/[0.05] dark:border-white/[0.08]';
 
                             const StockIcon = isOk ? CheckCircle2 : AlertTriangle;
 
                             return (
                                 <div
                                     key={product.id}
-                                    className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200/60 px-4 py-3 flex items-center gap-3"
+                                    className="bg-white/60 backdrop-blur-sm rounded-xl border border-slate-200/60 px-4 py-3 flex items-center gap-3 dark:bg-[rgba(15,23,42,0.65)] dark:border-white/[0.08]"
                                 >
                                     {/* Stock icon */}
                                     <div
@@ -145,15 +145,15 @@ export default function InventarioSection({ products }: InventarioSectionProps) 
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-slate-800 truncate">
+                                        <p className="text-sm font-medium text-slate-800 dark:text-white truncate">
                                             {product.name}
                                         </p>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[11px] text-slate-400 font-mono">
+                                            <span className="text-[11px] text-slate-400 dark:text-white/30 font-mono">
                                                 {product.sku}
                                             </span>
-                                            <span className="text-[11px] text-slate-300">·</span>
-                                            <span className="text-[11px] text-slate-500 font-medium">
+                                            <span className="text-[11px] text-slate-300 dark:text-white/20">·</span>
+                                            <span className="text-[11px] text-slate-500 dark:text-white/40 font-medium">
                                                 {currencyFormatter.format(Number(product.price))}
                                             </span>
                                         </div>
