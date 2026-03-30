@@ -144,10 +144,46 @@ export class AuthService {
       tenantRole: membership.role,
     });
 
+    const posOnly = await this.isPosOnlyUser(userId, membership.tenantId);
+
     return {
       accessToken,
+      posOnly,
       tenant: this.mapMembership(membership as MembershipWithTenant),
     };
+  }
+
+  /** Returns true if the user's permissions in this tenant are all POS-scoped. */
+  private async isPosOnlyUser(userId: string, tenantId: string): Promise<boolean> {
+    const POS_PERMISSIONS = new Set([
+      'pos:access',
+      'orders:create', 'orders:view', 'orders:edit',
+      'products:view',
+      'customers:view', 'customers:create',
+      'coupons:view',
+    ]);
+
+    const assignments = await this.prisma.userRoleAssignment.findMany({
+      where: { userId, tenantId },
+      include: {
+        role: {
+          include: {
+            permissions: { include: { permission: true } },
+          },
+        },
+      },
+    });
+
+    if (!assignments.length) return false;
+
+    const allPermissions = assignments.flatMap((a) =>
+      a.role.permissions.map((rp) => rp.permission.key),
+    );
+
+    if (!allPermissions.length) return false;
+    if (!allPermissions.includes('pos:access')) return false;
+
+    return allPermissions.every((key) => POS_PERMISSIONS.has(key));
   }
 
   /** Select branch — saves to DB and returns a new JWT with branchId embedded. */

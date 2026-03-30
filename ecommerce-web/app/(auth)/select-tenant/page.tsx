@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { TenantSummary, TenantPlan } from '@/lib/types';
@@ -33,8 +33,19 @@ const roleCls: Record<string, string> = {
 
 export default function SelectTenantPage() {
   const router = useRouter();
-  const { availableTenants, currentTenant, selectTenant, isAuthenticated } = useAuthStore();
+  const { availableTenants, currentTenant, selectTenant, isAuthenticated, posOnly } = useAuthStore();
   const [selecting, setSelecting] = useState<string | null>(null);
+
+  const handleSelect = useCallback(async (tenant: TenantSummary) => {
+    try {
+      setSelecting(tenant.slug);
+      const { posOnly } = await selectTenant(tenant.slug);
+      router.push(posOnly ? '/pos' : '/dashboard');
+    } catch {
+      toast.error('No se pudo seleccionar la tienda');
+      setSelecting(null);
+    }
+  }, [selectTenant, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -43,20 +54,14 @@ export default function SelectTenantPage() {
     }
     // Already has a tenant — skip this page
     if (currentTenant) {
-      router.replace('/dashboard');
+      router.replace(posOnly ? '/pos' : '/dashboard');
+      return;
     }
-  }, [isAuthenticated, currentTenant, router]);
-
-  const handleSelect = async (tenant: TenantSummary) => {
-    try {
-      setSelecting(tenant.slug);
-      await selectTenant(tenant.slug);
-      router.push('/dashboard');
-    } catch {
-      toast.error('No se pudo seleccionar la tienda');
-      setSelecting(null);
+    // Single tenant — auto-select without showing the picker
+    if (availableTenants.length === 1 && !selecting) {
+      handleSelect(availableTenants[0]);
     }
-  };
+  }, [isAuthenticated, currentTenant, posOnly, availableTenants, selecting, handleSelect, router]);
 
   if (!availableTenants.length) {
     return (

@@ -16,6 +16,7 @@ interface UsePOSOrderArgs {
   onSuccess: (data: SaleSuccessState) => void;
   clearCartAndCoupons: () => void;
   closeCheckoutModal: () => void;
+  refreshProducts: () => Promise<void>;
 }
 
 /**
@@ -29,6 +30,7 @@ export function usePOSOrder({
   onSuccess,
   clearCartAndCoupons,
   closeCheckoutModal,
+  refreshProducts,
 }: UsePOSOrderArgs) {
   const [creatingOrder, setCreatingOrder] = useState(false);
 
@@ -64,6 +66,7 @@ export function usePOSOrder({
 
         closeCheckoutModal();
         clearCartAndCoupons();
+        refreshProducts();
         onSuccess({
           orderId: response.data.id,
           orderNumber: response.data.orderNumber,
@@ -85,6 +88,7 @@ export function usePOSOrder({
       onSuccess,
       clearCartAndCoupons,
       closeCheckoutModal,
+      refreshProducts,
     ]
   );
 

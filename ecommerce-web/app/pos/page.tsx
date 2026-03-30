@@ -19,10 +19,13 @@ import {
   usePOSCart,
   usePOSModals,
   usePOSOrder,
+  usePOSAutoApplyCoupons,
 } from './hooks';
+import { useAuthStore } from '@/lib/store/auth-store';
 
 export default function POSPage() {
   const router = useRouter();
+  const { posOnly, logout } = useAuthStore();
   const currentTime = usePOSClock();
   const [activeSection, setActiveSection] = useState<POSSection>('cobrar');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -37,11 +40,13 @@ export default function POSPage() {
     categoryFilter,
     setCategoryFilter,
     isPending,
+    refreshProducts,
   } = usePOSData();
 
   const {
     cart,
     appliedCoupons,
+    setAppliedCoupons,
     addToCart,
     updateQuantity,
     removeFromCart,
@@ -79,6 +84,14 @@ export default function POSPage() {
     onSuccess: showSaleSuccess,
     clearCartAndCoupons,
     closeCheckoutModal: () => setCheckoutModalOpen(false),
+    refreshProducts,
+  });
+
+  usePOSAutoApplyCoupons({
+    selectedCustomerId,
+    cart,
+    subtotal,
+    setAppliedCoupons,
   });
 
   const canCheckout = cartCanCheckout && !creatingOrder;
@@ -112,7 +125,14 @@ export default function POSPage() {
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         cartCount={totalItems}
-        onExit={() => router.push('/dashboard')}
+        onExit={() => {
+          if (posOnly) {
+            logout();
+            router.push('/login');
+          } else {
+            router.push('/dashboard');
+          }
+        }}
         currentTime={currentTime}
       />
 

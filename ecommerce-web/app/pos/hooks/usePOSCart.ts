@@ -96,6 +96,7 @@ export function usePOSCart() {
   return {
     cart,
     appliedCoupons,
+    setAppliedCoupons,
     addToCart,
     updateQuantity,
     removeFromCart,

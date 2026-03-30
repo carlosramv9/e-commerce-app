@@ -416,6 +416,7 @@ export interface AuthResponse {
 
 export interface SelectTenantResponse {
   accessToken: string;
+  posOnly: boolean;
   tenant: TenantSummary;
 }
 

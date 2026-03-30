@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Coupon, PaginatedResponse, CreateCouponDto, UpdateCouponDto } from '../types';
+import { Coupon, CreateCouponDto, UpdateCouponDto } from '../types';
 
 interface QueryParams {
   page?: number;
@@ -11,7 +11,7 @@ interface QueryParams {
 
 export const couponsApi = {
   getAll: (params?: QueryParams) =>
-    apiClient.get<PaginatedResponse<Coupon>>('/coupons', { params }),
+    apiClient.get<Coupon[]>('/coupons', { params }),
 
   getOne: (id: string) => apiClient.get<Coupon>(`/coupons/${id}`),
 

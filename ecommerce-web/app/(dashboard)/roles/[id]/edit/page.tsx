@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/ui/page-header';
@@ -10,7 +10,8 @@ import { RoleWithPermissions } from '@/lib/types';
 import { useAuthStore, canManageUsers } from '@/lib/store/auth-store';
 import { Loader2 } from 'lucide-react';
 
-export default function EditRolePage({ params }: { params: { id: string } }) {
+export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const currentUser = useAuthStore((s) => s.user);
   const canAdmin = canManageUsers(currentUser);
@@ -24,14 +25,14 @@ export default function EditRolePage({ params }: { params: { id: string } }) {
       router.push('/dashboard');
       return;
     }
-    rolesApi.getOne(params.id)
+    rolesApi.getOne(id)
       .then((res) => setRole(res.data))
       .catch(() => {
         toast.error('Error al cargar el rol');
         router.push('/roles');
       })
       .finally(() => setLoading(false));
-  }, [canAdmin, params.id, router]);
+  }, [canAdmin, id, router]);
 
   if (!canAdmin) return null;
 
@@ -48,7 +49,7 @@ export default function EditRolePage({ params }: { params: { id: string } }) {
   const handleSubmit = async (data: RoleFormValues) => {
     try {
       setIsLoading(true);
-      await rolesApi.update(params.id, {
+      await rolesApi.update(id, {
         name: data.name,
         description: data.description || undefined,
         color: data.color,

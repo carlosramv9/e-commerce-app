@@ -247,7 +247,7 @@ const CheckoutModal = ({
                             {splits.map((split, index) => (
                                 <div
                                     key={split.id}
-                                    className="rounded-xl border border-white/50 p-3 bg-white/30 backdrop-blur-sm dark:bg-white/[0.04] dark:border-white/[0.10]"
+                                    className="rounded-xl border border-white/50 p-3 bg-white/30 backdrop-blur-sm dark:bg-white/4 dark:border-white/10"
                                 >
                                     {/* Split header (only in multi-split mode) */}
                                     {isMultiple && (
@@ -279,7 +279,7 @@ const CheckoutModal = ({
                                                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                         selected
                                                             ? 'border-slate-700 bg-slate-800 text-white shadow-sm dark:border-indigo-500 dark:bg-indigo-600'
-                                                            : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70 dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60 dark:hover:bg-white/[0.10]'
+                                                            : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10'
                                                     }`}
                                                 >
                                                     <Icon className="h-3.5 w-3.5" />
@@ -293,8 +293,8 @@ const CheckoutModal = ({
                                                 onClick={() => toggleRemainingSplit(split.id)}
                                                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                                                     split.isRemaining
-                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/[0.15] dark:text-emerald-300 dark:border-emerald-500/[0.30]'
-                                                        : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70 dark:border-white/[0.10] dark:bg-white/[0.05] dark:text-white/60 dark:hover:bg-white/[0.10]'
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30'
+                                                        : 'border-white/50 bg-white/40 text-slate-600 hover:bg-white/70 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10'
                                                 }`}
                                             >
                                                 {split.isRemaining ? 'Quitar resto' : 'Resto aquí'}
@@ -335,7 +335,7 @@ const CheckoutModal = ({
                                                     step="0.01"
                                                     value={split.amount}
                                                     onChange={(e) => updateAmount(split.id, e.target.value)}
-                                                    className="w-full pl-6 pr-3 py-2 border border-white/50 bg-white/60 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-slate-300/60 focus:border-transparent dark:bg-white/[0.05] dark:border-white/[0.10] dark:text-white dark:focus:ring-indigo-500/40"
+                                                    className="w-full pl-6 pr-3 py-2 border border-white/50 bg-white/60 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-slate-300/60 focus:border-transparent dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:ring-indigo-500/40"
                                                 />
                                             )}
                                         </div>
@@ -373,7 +373,7 @@ const CheckoutModal = ({
                 </div>
 
                 {/* Actions */}
-                <div className="border-t border-white/40 px-5 py-4 flex gap-3 bg-white/20 backdrop-blur-sm dark:bg-white/[0.03]">
+                <div className="border-t border-white/40 px-5 py-4 flex gap-3 bg-white/20 backdrop-blur-sm dark:bg-white/3">
                     <Button
                         variant="outline"
                         className="flex-1"

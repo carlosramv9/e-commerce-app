@@ -48,7 +48,7 @@ export default function CouponsPage() {
   const [loading, setLoading] = useState(true);
   const [scopeFilter, setScopeFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
 
@@ -67,8 +67,9 @@ export default function CouponsPage() {
       if (scopeFilter) params.scope = scopeFilter;
 
       const response = await couponsApi.getAll(params);
-      setCoupons(response.data.data);
-      setTotalPages(response.data.meta.totalPages);
+      const items = response.data || [];
+      setCoupons(items);
+      setHasMore(items.length >= 10);
     } catch (error) {
       toast.error(t('loadError'));
     } finally {
@@ -167,7 +168,7 @@ export default function CouponsPage() {
                 <Skeleton key={i} className="h-16" />
               ))}
             </div>
-          ) : coupons.length === 0 ? (
+          ) : coupons?.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-500">{t('noResults')}</p>
             </div>
@@ -188,7 +189,7 @@ export default function CouponsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {coupons.map((coupon) => (
+                  {coupons?.map((coupon) => (
                     <TableRow key={coupon.id}>
                       <TableCell className="font-medium">{coupon.code}</TableCell>
                       <TableCell>{getTypeBadge(coupon.type, coupon.value)}</TableCell>
@@ -248,7 +249,7 @@ export default function CouponsPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t">
                 <div className="text-sm text-slate-500">
-                  {tc('page', { current: page, total: totalPages })}
+                  {tc('page', { current: page, total: '–' })}
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -263,7 +264,7 @@ export default function CouponsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setPage(page + 1)}
-                    disabled={page === totalPages}
+                    disabled={!hasMore}
                   >
                     {tc('next')}
                   </Button>

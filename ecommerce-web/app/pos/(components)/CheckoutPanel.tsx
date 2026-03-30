@@ -66,7 +66,7 @@ const CheckoutPanel = ({
             <div className="flex-1 overflow-y-auto px-4 md:px-5 py-3 md:py-4 space-y-2">
                 {cart.length === 0 ? (
                     <div className="flex items-center justify-center h-full min-h-[80px]">
-                        <p className="text-sm text-slate-400 dark:text-white/30">Carrito vacío</p>
+                        <p className="text-sm text-slate-400 dark:text-white/80">Carrito vacío</p>
                     </div>
                 ) : (
                     cart.map((item) => (
@@ -102,7 +102,7 @@ const CheckoutPanel = ({
                                 <p className="text-xs text-slate-400 truncate dark:text-white/40">{selectedCustomer.email}</p>
                             </>
                         ) : (
-                            <p className="text-sm text-slate-400 dark:text-white/40">Seleccionar cliente <span className="text-slate-300 dark:text-white/20">*</span></p>
+                            <p className="text-sm text-slate-400 dark:text-white/80">Seleccionar cliente</p>
                         )}
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-300 dark:text-white/20 shrink-0" />
@@ -132,7 +132,7 @@ const CheckoutPanel = ({
                                 </p>
                             </>
                         ) : (
-                            <p className="text-sm text-slate-400 dark:text-white/40">Agregar cupón</p>
+                            <p className="text-sm text-slate-400 dark:text-white/80">Agregar cupón</p>
                         )}
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-300 dark:text-white/20 shrink-0" />

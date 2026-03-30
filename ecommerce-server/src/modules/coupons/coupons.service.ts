@@ -54,6 +54,9 @@ export class CouponsService {
     if (query?.isActive !== undefined)  where.isActive = query.isActive;
     if (query?.autoApply !== undefined) where.autoApply = query.autoApply;
 
+    const page = query?.page ?? 1;
+    const limit = query?.limit ?? 50;
+
     return this.prisma.coupon.findMany({
       where,
       include: {
@@ -63,6 +66,8 @@ export class CouponsService {
         updatedBy: { select: { id: true, email: true, firstName: true, lastName: true } },
       },
       orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
   }
 

@@ -12,10 +12,11 @@ interface AuthState {
   currentTenant: TenantSummary | null;
   availableTenants: TenantSummary[];
   currentBranchId: string | null;
+  posOnly: boolean;
 
   login: (credentials: LoginDto) => Promise<AuthResponse>;
-  /** Saves tenant selection to DB — no new JWT */
-  selectTenant: (slug: string) => Promise<void>;
+  /** Selects tenant — returns new JWT with tenantId + posOnly flag */
+  selectTenant: (slug: string) => Promise<{ posOnly: boolean }>;
   logout: () => void;
   initialize: () => Promise<void>;
   setUser: (user: User) => void;
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   currentTenant: null,
   availableTenants: [],
   currentBranchId: null,
+  posOnly: false,
 
   login: async (credentials: LoginDto) => {
     const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
@@ -52,20 +54,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const response = await apiClient.patch<SelectTenantResponse>(
       `/auth/select-tenant/${slug}`,
     );
-    const { tenant, accessToken } = response.data;
+    const { tenant, accessToken, posOnly } = response.data;
 
     localStorage.setItem('token', accessToken);
+    localStorage.setItem('posOnly', String(posOnly ?? false));
 
     set((state) => ({
       token: accessToken,
       currentTenant: tenant,
       availableTenants: state.availableTenants,
       currentBranchId: null,
+      posOnly: posOnly ?? false,
     }));
+
+    return { posOnly: posOnly ?? false };
   },
 
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('posOnly');
 
     set({
       user: null,
@@ -75,6 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       currentTenant: null,
       availableTenants: [],
       currentBranchId: null,
+      posOnly: false,
     });
   },
 
@@ -93,6 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }>('/auth/me');
 
       const { user, currentTenant, currentBranchId } = response.data;
+      const posOnly = localStorage.getItem('posOnly') === 'true';
 
       set({
         user,
@@ -101,6 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         currentTenant: currentTenant ?? null,
         currentBranchId: currentBranchId ?? null,
+        posOnly,
       });
     } catch {
       localStorage.removeItem('token');

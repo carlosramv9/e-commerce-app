@@ -55,7 +55,7 @@ export function StatCard({
               {title}
             </p>
             {/* Valor — blanco puro, letter-spacing apretado en dark */}
-            <p className="text-2xl font-bold text-slate-800 dark:text-white mt-2 dark:[letter-spacing:-0.02em]">
+            <p className="text-2xl font-bold text-slate-800 dark:text-white mt-2 dark:tracking-[-0.02em]">
               {value}
             </p>
             {description && (

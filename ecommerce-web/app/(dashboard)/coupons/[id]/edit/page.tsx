@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
 import { CouponForm } from '@/components/coupons/coupon-form';
@@ -10,23 +10,24 @@ import { couponsApi } from '@/lib/api/coupons';
 import { Coupon } from '@/lib/types';
 import { toast } from 'sonner';
 
-export default function EditCouponPage({ params }: { params: { id: string } }) {
+export default function EditCouponPage() {
   const router = useRouter();
   const t = useTranslations('coupons');
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { id } = useParams();
 
   useEffect(() => {
     loadCoupon();
-  }, [params.id]);
+  }, [id]);
 
   const loadCoupon = async () => {
     try {
       setLoading(true);
-      const response = await couponsApi.getOne(params.id);
+      const response = await couponsApi.getOne(id as string);
       setCoupon(response.data);
-    } catch (error) {
+    } catch {
       toast.error(t('edit.loadError'));
       router.push('/coupons');
     } finally {
@@ -37,7 +38,7 @@ export default function EditCouponPage({ params }: { params: { id: string } }) {
   const handleSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
-      await couponsApi.update(params.id, data);
+      await couponsApi.update(id as string, data);
       toast.success(t('edit.updateSuccess'));
       router.push('/coupons');
     } catch (error: any) {

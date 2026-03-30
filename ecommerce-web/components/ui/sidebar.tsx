@@ -128,8 +128,7 @@ function Sidebar({
       data-state={state}
       data-collapsible={collapsible}
       className={cn(
-        "relative flex h-full shrink-0 flex-col overflow-hidden  transition-[width] duration-200 ease-linear backdrop-blur-[10px] shadow-[0_4px_30px_rgba(0,0,0,0.1)] ease-cubic-bezier(0.4,0,0.2,1) bg-[#F9F9F9]",
-        "dark:bg-[linear-gradient(145deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.08)_50%,rgba(255,255,255,0.03)_100%)]",
+        "relative flex h-full shrink-0 flex-col overflow-hidden transition-[width] duration-200 ease-linear backdrop-blur-[10px] shadow-[0_4px_30px_rgba(0,0,0,0.1)] bg-[#F9F9F9] dark:bg-none dark:[background:linear-gradient(145deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.08)_50%,rgba(255,255,255,0.03)_100%)]",
         collapsible === "icon"
           ? state === "expanded"
             ? "w-(--sidebar-width)"

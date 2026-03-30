@@ -34,6 +34,7 @@ export class ProfileResponseDto {
 
 export class SelectTenantResponseDto {
   @ApiProperty() accessToken: string;
+  @ApiProperty() posOnly: boolean;
   @ApiProperty({ type: TenantSummaryDto }) tenant: TenantSummaryDto;
 }
 

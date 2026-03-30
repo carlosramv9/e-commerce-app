@@ -131,12 +131,31 @@ export class OrdersService {
         });
       }
 
-      // Decrement branch inventory if branchId is provided
+      // Decrement product stock
+      for (const item of dto.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+
+      console.log('===================================> decrement product stock');
+
+      // Decrement branch inventory (upsert: create with remaining product stock if missing)
       if (branchId) {
         for (const item of dto.items) {
-          await tx.branchInventory.updateMany({
-            where: { branchId, productId: item.productId },
-            data: { stock: { decrement: item.quantity } },
+          const updatedProduct = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stock: true },
+          });
+          await tx.branchInventory.upsert({
+            where: { branchId_productId: { branchId, productId: item.productId } },
+            update: { stock: { decrement: item.quantity } },
+            create: {
+              branchId,
+              productId: item.productId,
+              stock: updatedProduct?.stock ?? 0,
+            },
           });
         }
       }

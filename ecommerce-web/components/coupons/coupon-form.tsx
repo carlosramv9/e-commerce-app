@@ -96,6 +96,19 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
   const scope = form.watch('scope');
   const autoApply = form.watch('autoApply');
 
+  const handleFormSubmit = async (data: CouponFormValues) => {
+    const { autoApplyCustomerTypes, firstPurchaseOnly, minPurchaseAmount, validFrom, validTo, active, ...rest } = data;
+    await onSubmit({
+      ...rest,
+      customerTypes: autoApplyCustomerTypes,
+      isFirstPurchaseOnly: firstPurchaseOnly,
+      minPurchase: minPurchaseAmount,
+      startDate: validFrom || undefined,
+      endDate: validTo || undefined,
+      isActive: active,
+    });
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -118,7 +131,7 @@ export function CouponForm({ coupon, onSubmit, isLoading }: CouponFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Basic Information */}
         <div className="glass overflow-hidden">
           <div className="glass-header">

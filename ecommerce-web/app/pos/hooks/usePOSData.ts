@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, useCallback } from 'react';
 import { productsApi } from '@/lib/api/products';
 import { customersApi } from '@/lib/api/customers';
 import { categoriesApi } from '@/lib/api/categories';
@@ -40,27 +40,28 @@ export function usePOSData() {
     loadInitialData();
   }, []);
 
+  const loadProducts = useCallback(async () => {
+    try {
+      const params: { status: string; limit: number; search?: string; categoryId?: string } = {
+        status: 'ACTIVE',
+        limit: 100,
+      };
+      if (search) params.search = search;
+      if (categoryFilter) params.categoryId = categoryFilter;
+
+      const response = await productsApi.getAll(params);
+      startTransition(() => {
+        setProducts(response.data.data ?? []);
+      });
+    } catch {
+      toast.error('Error al cargar productos');
+    }
+  }, [search, categoryFilter]);
+
   // Productos según búsqueda y categoría
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const params: { status: string; limit: number; search?: string; categoryId?: string } = {
-          status: 'ACTIVE',
-          limit: 100,
-        };
-        if (search) params.search = search;
-        if (categoryFilter) params.categoryId = categoryFilter;
-
-        const response = await productsApi.getAll(params);
-        startTransition(() => {
-          setProducts(response.data.data ?? []);
-        });
-      } catch {
-        toast.error('Error al cargar productos');
-      }
-    };
     loadProducts();
-  }, [search, categoryFilter]);
+  }, [loadProducts]);
 
   return {
     products,
@@ -72,5 +73,6 @@ export function usePOSData() {
     categoryFilter,
     setCategoryFilter,
     isPending,
+    refreshProducts: loadProducts,
   };
 }

@@ -7,10 +7,21 @@ import {
     Package,
     Tag,
     LogOut,
+    Moon,
+    Sun,
+    ChevronUp,
     type LucideIcon,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/lib/store/auth-store';
 import BranchSelector from './BranchSelector';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     Sidebar,
     SidebarContent,
@@ -59,7 +70,9 @@ function POSSidebarInner({
 }: POSSidebarProps) {
     const user = useAuthStore((s) => s.user);
     const { state } = useSidebar();
+    const { setTheme, resolvedTheme } = useTheme();
     const collapsed = state === 'collapsed';
+    const isDark = resolvedTheme === 'dark';
 
     const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : '?';
     const fullName = user ? `${user.firstName} ${user.lastName}` : '';
@@ -145,35 +158,47 @@ function POSSidebarInner({
 
                 <SidebarSeparator />
 
-                {/* User info */}
-                <div className="flex items-center gap-2.5 px-3 py-2">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 flex items-center justify-center shrink-0">
-                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-200">{initials}</span>
-                    </div>
-                    {!collapsed && (
-                        <div className="overflow-hidden flex-1 min-w-0">
-                            <p className="text-slate-600 dark:text-slate-100 text-sm font-medium truncate leading-none">
-                                {fullName}
-                            </p>
-                            <p className="text-slate-400 dark:text-slate-400 text-xs mt-0.5">Vendedor</p>
-                        </div>
-                    )}
-                </div>
-
                 {/* Branch selector */}
                 {!collapsed && <BranchSelector />}
 
-                {/* Exit */}
-                <SidebarMenuButton
-                    tooltip="Salir del POS"
-                    onClick={onExit}
-                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                >
-                    <LogOut className="h-[20px] w-[20px] shrink-0" />
-                    {!collapsed && (
-                        <span className="text-[18px] font-medium">Salir del POS</span>
-                    )}
-                </SidebarMenuButton>
+                {/* User menu with dropdown */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-2.5 px-3 py-2 w-full rounded-xl hover:bg-slate-100 dark:hover:bg-white/6 transition-colors text-left">
+                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 flex items-center justify-center shrink-0">
+                                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-200">{initials}</span>
+                            </div>
+                            {!collapsed && (
+                                <>
+                                    <div className="overflow-hidden flex-1 min-w-0">
+                                        <p className="text-slate-600 dark:text-slate-100 text-sm font-medium truncate leading-none">
+                                            {fullName}
+                                        </p>
+                                        <p className="text-slate-400 dark:text-slate-400 text-xs mt-0.5">Vendedor</p>
+                                    </div>
+                                    <ChevronUp className="h-4 w-4 text-slate-400 dark:text-white/30 shrink-0" />
+                                </>
+                            )}
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="top" align="start" className="w-56">
+                        {/* Theme toggle */}
+                        <DropdownMenuItem onClick={() => setTheme(isDark ? 'light' : 'dark')}>
+                            {isDark ? (
+                                <Sun className="h-4 w-4 text-amber-500" />
+                            ) : (
+                                <Moon className="h-4 w-4 text-slate-500" />
+                            )}
+                            <span>{isDark ? 'Tema claro' : 'Tema oscuro'}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {/* Exit POS */}
+                        <DropdownMenuItem onClick={onExit} className="text-red-600 dark:text-red-400 focus:text-red-700 dark:focus:text-red-300">
+                            <LogOut className="h-4 w-4" />
+                            <span>Salir del POS</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </SidebarFooter>
         </Sidebar>
     );
@@ -181,7 +206,7 @@ function POSSidebarInner({
 
 export default function POSSidebar(props: POSSidebarProps) {
     return (
-        <SidebarProvider defaultOpen={true}>
+        <SidebarProvider defaultOpen={false}>
             <POSSidebarInner {...props} />
         </SidebarProvider>
     );

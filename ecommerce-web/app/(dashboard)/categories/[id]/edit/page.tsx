@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PageHeader } from '@/components/ui/page-header';
@@ -10,7 +10,8 @@ import { categoriesApi } from '@/lib/api/categories';
 import { Category } from '@/lib/types';
 import { toast } from 'sonner';
 
-export default function EditCategoryPage({ params }: { params: { id: string } }) {
+export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const t = useTranslations('categories');
   const [category, setCategory] = useState<Category | null>(null);
@@ -19,12 +20,12 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     loadCategory();
-  }, [params.id]);
+  }, [id]);
 
   const loadCategory = async () => {
     try {
       setLoading(true);
-      const response = await categoriesApi.getOne(params.id);
+      const response = await categoriesApi.getOne(id);
       setCategory(response.data);
     } catch (error) {
       toast.error(t('edit.loadError'));
@@ -37,7 +38,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
   const handleSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
-      await categoriesApi.update(params.id, data);
+      await categoriesApi.update(id, data);
       toast.success(t('edit.updateSuccess'));
       router.push('/categories');
     } catch (error: any) {

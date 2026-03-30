@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Plus, Edit, Trash2, Lock, Users, ShieldCheck, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,16 +19,17 @@ import { toast } from 'sonner';
 import { rolesApi } from '@/lib/api/roles';
 import { Role } from '@/lib/types';
 import { useAuthStore, canManageUsers } from '@/lib/store/auth-store';
+import { Card, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
 
 export default function RolesPage() {
-  const router  = useRouter();
+  const router = useRouter();
   const currentUser = useAuthStore((s) => s.user);
-  const canAdmin    = canManageUsers(currentUser);
+  const canAdmin = canManageUsers(currentUser);
 
-  const [roles, setRoles]         = useState<Role[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [deleting, setDeleting]   = useState<string | null>(null);
-  const [toDelete, setToDelete]   = useState<Role | null>(null);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<Role | null>(null);
 
   const loadRoles = useCallback(async () => {
     try {
@@ -138,11 +138,8 @@ function RoleCard({
   const color = role.color ?? '#6366f1';
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-900/5 rounded-2xl overflow-hidden hover:border-white/80 transition-colors">
-      {/* Color stripe */}
-      <div className="h-1" style={{ backgroundColor: color }} />
-
-      <div className="p-5">
+    <Card>
+      <CardContent>
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2.5">
@@ -153,11 +150,11 @@ function RoleCard({
               <Shield className="h-4.5 w-4.5" style={{ color }} />
             </div>
             <div>
-              <p className="font-semibold text-slate-800 text-sm leading-tight">
+              <CardTitle>
                 {role.name}
-              </p>
+              </CardTitle>
               {role.isSystem && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 mt-0.5">
+                <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-400 dark:text-white/50 mt-0.5">
                   <Lock className="h-3 w-3" />
                   Sistema
                 </span>
@@ -185,21 +182,21 @@ function RoleCard({
 
         {/* Description */}
         {role.description && (
-          <p className="text-xs text-slate-500 mb-3 line-clamp-2">{role.description}</p>
+          <p className="text-sm text-slate-500 dark:text-white/50 mb-3 line-clamp-2">{role.description}</p>
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-4 pt-3 border-t border-slate-100/60">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+        <CardFooter className="flex items-center gap-4 pt-3 border-t border-slate-100/60">
+          <div className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-white/50">
             <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
             <span>{role._count?.permissions ?? 0} permisos</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-white/50">
             <Users className="h-3.5 w-3.5 text-slate-400" />
             <span>{role._count?.userAssignments ?? 0} usuarios</span>
           </div>
-        </div>
-      </div>
-    </div>
+        </CardFooter>
+      </CardContent>
+    </Card>
   );
 }

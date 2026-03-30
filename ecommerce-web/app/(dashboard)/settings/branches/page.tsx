@@ -3,12 +3,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Plus, Edit, Trash2, MapPin, Phone, Star, Package,
-  ShoppingCart, Users, AlertTriangle, CheckCircle2, XCircle,
+  Plus, MapPin, AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription,
@@ -16,14 +14,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { branchesApi } from '@/lib/api/branches';
-import { Branch, BranchStatus } from '@/lib/types';
+import { Branch } from '@/lib/types';
 import { useAuthStore } from '@/lib/store/auth-store';
-
-const STATUS_CONFIG: Record<BranchStatus, { label: string; icon: React.ElementType; cls: string }> = {
-  ACTIVE:   { label: 'Activa',   icon: CheckCircle2, cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  INACTIVE: { label: 'Inactiva', icon: AlertTriangle, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
-  CLOSED:   { label: 'Cerrada',  icon: XCircle,      cls: 'text-slate-500 bg-slate-100 border-slate-200' },
-};
+import { BranchCard } from './(components)/BranchCard';
 
 export default function BranchesPage() {
   const router = useRouter();
@@ -121,121 +114,16 @@ export default function BranchesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {branches.map((branch) => {
-            const status = STATUS_CONFIG[branch.status] ?? STATUS_CONFIG.ACTIVE;
-            const StatusIcon = status.icon;
-            return (
-              <div
-                key={branch.id}
-                className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-xl shadow-slate-900/5 rounded-2xl overflow-hidden"
-              >
-                {/* Top bar */}
-                <div className={`h-1 ${branch.isMain ? 'bg-slate-700' : 'bg-slate-200/80'}`} />
-
-                <div className="p-5">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-slate-800 truncate">{branch.name}</h3>
-                        {branch.isMain && (
-                          <span className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-800 text-white">
-                            <Star className="h-2.5 w-2.5" /> Principal
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">{branch.code}</p>
-                    </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 ml-2 ${status.cls}`}>
-                      <StatusIcon className="h-3 w-3" />
-                      {status.label}
-                    </span>
-                  </div>
-
-                  {/* Info */}
-                  <div className="space-y-1 mb-4">
-                    {(branch.city || branch.address) && (
-                      <div className="flex items-start gap-2 text-xs text-slate-500">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-slate-400" />
-                        <span className="line-clamp-1">
-                          {[branch.address, branch.city, branch.state].filter(Boolean).join(', ')}
-                        </span>
-                      </div>
-                    )}
-                    {branch.phone && (
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Phone className="h-3.5 w-3.5 text-slate-400" />
-                        <span>{branch.phone}</span>
-                      </div>
-                    )}
-                    {branch.manager && (
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Users className="h-3.5 w-3.5 text-slate-400" />
-                        <span>{branch.manager.firstName} {branch.manager.lastName}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Stats */}
-                  {branch._count && (
-                    <div className="grid grid-cols-3 gap-2 mb-4">
-                      {[
-                        { icon: Users, label: 'Staff', val: branch._count.memberships },
-                        { icon: ShoppingCart, label: 'Ventas', val: branch._count.orders },
-                        { icon: Package, label: 'Productos', val: branch._count.inventory },
-                      ].map(({ icon: Icon, label, val }) => (
-                        <div key={label} className="bg-slate-50/60 border border-slate-200/50 rounded-xl px-2 py-2 text-center">
-                          <p className="text-sm font-bold text-slate-800">{val}</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-1.5 text-xs"
-                      onClick={() => router.push(`/settings/branches/${branch.id}/edit`)}
-                    >
-                      <Edit className="h-3.5 w-3.5" /> Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-1.5 text-xs"
-                      onClick={() => router.push(`/settings/branches/${branch.id}/inventory`)}
-                    >
-                      <Package className="h-3.5 w-3.5" /> Inventario
-                    </Button>
-                    {!branch.isMain && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="px-2 text-slate-400 hover:text-slate-600"
-                        title="Establecer como principal"
-                        onClick={() => handleSetMain(branch)}
-                      >
-                        <Star className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="px-2 text-slate-400 hover:text-red-600"
-                      disabled={branch.isMain}
-                      title={branch.isMain ? 'No se puede eliminar la sucursal principal' : 'Eliminar'}
-                      onClick={() => setToDelete(branch)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {branches.map((branch) => (
+            <BranchCard
+              key={branch.id}
+              branch={branch}
+              onEdit={(id) => router.push(`/settings/branches/${id}/edit`)}
+              onInventory={(id) => router.push(`/settings/branches/${id}/inventory`)}
+              onSetMain={handleSetMain}
+              onDelete={setToDelete}
+            />
+          ))}
         </div>
       )}
 

@@ -19,7 +19,6 @@ import { QueryCouponDto } from './dto/query-coupon.dto';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('Coupons')
 @Controller('coupons')
@@ -69,7 +68,7 @@ export class CouponsController {
   }
 
   @Post('validate')
-  @Public()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Validate a coupon code' })
   @HttpCode(HttpStatus.OK)
   validateCoupon(@Body() validateDto: ValidateCouponDto) {
