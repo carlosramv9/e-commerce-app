@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
   Put,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
@@ -17,8 +16,7 @@ import { UsersService, PermissionGrantInput } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 
 class SetRolesDto {
   @IsArray()
@@ -44,12 +42,11 @@ class SetPermissionsDto {
 @ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
-@UseGuards(RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @RequirePermissions('users:create')
   @ApiOperation({ summary: 'Create a new user' })
   create(@Body() createUserDto: CreateUserDto) {
     console.log(createUserDto);
@@ -57,42 +54,42 @@ export class UsersController {
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
+  @RequirePermissions('users:view')
   @ApiOperation({ summary: 'Get all users with pagination' })
   findAll(@Query() paginationDto: PaginationDto) {
     return this.usersService.findAll(paginationDto);
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
+  @RequirePermissions('users:view')
   @ApiOperation({ summary: 'Get user by ID' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @RequirePermissions('users:edit')
   @ApiOperation({ summary: 'Update user' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  @Roles('SUPER_ADMIN')
+  @RequirePermissions('users:delete')
   @ApiOperation({ summary: 'Delete user' })
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 
   @Get(':id/roles')
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @RequirePermissions('users:view')
   @ApiOperation({ summary: 'Get user roles and permission grants' })
   findOneWithRoles(@Param('id') id: string) {
     return this.usersService.findOneWithRoles(id);
   }
 
   @Put(':id/roles')
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @RequirePermissions('users:edit')
   @ApiOperation({ summary: 'Replace all role assignments for a user' })
   @ApiBody({ type: SetRolesDto })
   setRoles(@Param('id') id: string, @Body() body: SetRolesDto) {
@@ -100,7 +97,7 @@ export class UsersController {
   }
 
   @Put(':id/permissions')
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @RequirePermissions('users:edit')
   @ApiOperation({ summary: 'Replace all individual permission grants for a user' })
   @ApiBody({ type: SetPermissionsDto })
   setPermissions(@Param('id') id: string, @Body() body: SetPermissionsDto) {
@@ -108,7 +105,7 @@ export class UsersController {
   }
 
   @Get(':id/effective-permissions')
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
+  @RequirePermissions('users:view')
   @ApiOperation({ summary: 'Get effective permission keys for a user' })
   getEffectivePermissions(@Param('id') id: string) {
     return this.usersService.getEffectivePermissions(id);

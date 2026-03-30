@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -17,18 +16,16 @@ import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { QueryCouponDto } from './dto/query-coupon.dto';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 
 @ApiTags('Coupons')
 @Controller('coupons')
-@UseGuards(RolesGuard)
 export class CouponsController {
   constructor(private readonly couponsService: CouponsService) {}
 
   @Post()
   @ApiBearerAuth()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
+  @RequirePermissions('coupons:create')
   @ApiOperation({ summary: 'Create a new coupon' })
   create(@Body() createCouponDto: CreateCouponDto) {
     return this.couponsService.create(createCouponDto);
@@ -36,7 +33,7 @@ export class CouponsController {
 
   @Get()
   @ApiBearerAuth()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF')
+  @RequirePermissions('coupons:view')
   @ApiOperation({ summary: 'Get all coupons with filters' })
   findAll(@Query() query: QueryCouponDto) {
     return this.couponsService.findAll(query);
@@ -44,7 +41,7 @@ export class CouponsController {
 
   @Get(':id')
   @ApiBearerAuth()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF')
+  @RequirePermissions('coupons:view')
   @ApiOperation({ summary: 'Get coupon by ID' })
   findOne(@Param('id') id: string) {
     return this.couponsService.findOne(id);
@@ -52,7 +49,7 @@ export class CouponsController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
+  @RequirePermissions('coupons:edit')
   @ApiOperation({ summary: 'Update coupon' })
   update(@Param('id') id: string, @Body() updateCouponDto: UpdateCouponDto) {
     return this.couponsService.update(id, updateCouponDto);
@@ -60,7 +57,7 @@ export class CouponsController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @RequirePermissions('coupons:delete')
   @ApiOperation({ summary: 'Delete coupon' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
@@ -69,6 +66,7 @@ export class CouponsController {
 
   @Post('validate')
   @ApiBearerAuth()
+  @RequirePermissions('coupons:view')
   @ApiOperation({ summary: 'Validate a coupon code' })
   @HttpCode(HttpStatus.OK)
   validateCoupon(@Body() validateDto: ValidateCouponDto) {
@@ -77,7 +75,7 @@ export class CouponsController {
 
   @Post(':id/increment-usage')
   @ApiBearerAuth()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF')
+  @RequirePermissions('coupons:view')
   @ApiOperation({ summary: 'Increment coupon usage count' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async incrementUsage(@Param('id') id: string) {

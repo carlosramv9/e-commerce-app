@@ -1,18 +1,15 @@
-import { Controller, Get, Param, Patch, Body, Query, UseGuards, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Body, Query, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { QueryOrdersDto } from './dto/query-orders.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { OrderStatus } from '@prisma/client';
 import { EmailService } from '../email/email.service';
 
 @ApiTags('Orders')
 @ApiBearerAuth()
 @Controller('orders')
-@UseGuards(RolesGuard)
-@Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER')
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
@@ -20,47 +17,49 @@ export class OrdersController {
   ) {}
 
   @Get()
+  @RequirePermissions('orders:view')
   @ApiOperation({ summary: 'Get all orders' })
   findAll(@Query() query: QueryOrdersDto) {
     return this.ordersService.findAll(query);
   }
 
   @Get('stats')
+  @RequirePermissions('orders:view')
   @ApiOperation({ summary: 'Get order statistics' })
   getStats() {
     return this.ordersService.getStats();
   }
 
   @Post()
-  @Roles('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'STAFF')
+  @RequirePermissions('orders:create')
   @ApiOperation({ summary: 'Create a new sale (order)' })
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.ordersService.create(createOrderDto);
   }
 
   @Get(':id')
+  @RequirePermissions('orders:view')
   @ApiOperation({ summary: 'Get order by ID' })
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);
   }
 
   @Patch(':id/status')
+  @RequirePermissions('orders:edit')
   @ApiOperation({ summary: 'Update order status' })
   updateStatus(@Param('id') id: string, @Body('status') status: OrderStatus) {
     return this.ordersService.updateStatus(id, status);
   }
 
   @Post(':id/send-receipt')
+  @RequirePermissions('orders:view')
   @ApiOperation({ summary: 'Send order receipt by email' })
   @HttpCode(HttpStatus.OK)
   async sendReceipt(
     @Param('id') id: string,
     @Body('email') email: string,
   ) {
-    // Obtener orden con todas las relaciones necesarias
     const order = await this.ordersService.findOne(id);
-
-    // findOne ya incluye todas las relaciones necesarias
     const result = await this.emailService.sendReceipt(email, order as any);
 
     return {
@@ -68,7 +67,7 @@ export class OrdersController {
       message: result.success
         ? 'Ticket enviado correctamente'
         : 'Error al enviar ticket',
-      previewUrl: result.previewUrl, // Solo en desarrollo con Ethereal
+      previewUrl: result.previewUrl,
     };
   }
 }

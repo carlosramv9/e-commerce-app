@@ -84,7 +84,7 @@ export function BranchCard({ branch, onEdit, onInventory, onSetMain, onDelete }:
               { icon: ShoppingCart, label: 'Ventas',    val: branch._count.orders },
               { icon: Package,      label: 'Productos', val: branch._count.inventory },
             ].map(({ icon: Icon, label, val }) => (
-              <div key={label} className="bg-slate-50/60 dark:bg-[#37393D]/60 border border-slate-200/50 dark:border-slate-700/50 rounded-xl px-2 py-2 text-center dark:border-white/50">
+              <div key={label} className="bg-slate-50/60 dark:bg-[#37393D]/60 border border-slate-200/50 rounded-xl px-2 py-2 text-center dark:border-white/50">
                 <p className="text-sm font-bold text-[#37393D] dark:text-white">{val}</p>
                 <p className="text-[10px] text-slate-400 dark:text-white/50 mt-0.5">{label}</p>
               </div>

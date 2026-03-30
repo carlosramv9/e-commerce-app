@@ -13,8 +13,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { TenantsService } from './tenants.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 
 @ApiTags('Tenants')
 @ApiBearerAuth()
@@ -25,33 +24,33 @@ export class TenantsController {
   // ── Super-admin endpoints ──────────────────────────────────────────────────
 
   @Post()
-  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions('tenants:manage')
   @ApiOperation({ summary: 'Create a new tenant (super-admin only)' })
   create(@Body() dto: CreateTenantDto) {
     return this.tenantsService.create(dto);
   }
 
   @Get()
-  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions('tenants:manage')
   @ApiOperation({ summary: 'List all tenants (super-admin only)' })
   findAll() {
     return this.tenantsService.findAll();
   }
 
   @Get(':id')
-  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions('tenants:manage')
   findOne(@Param('id') id: string) {
     return this.tenantsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions('tenants:manage')
   update(@Param('id') id: string, @Body() dto: UpdateTenantDto) {
     return this.tenantsService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.SUPER_ADMIN)
+  @RequirePermissions('tenants:manage')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.tenantsService.remove(id);

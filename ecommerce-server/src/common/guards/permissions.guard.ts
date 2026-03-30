@@ -3,8 +3,17 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../database/prisma.service';
 import { PERMISSIONS_KEY } from '../decorators/require-permissions.decorator';
 
+interface CacheEntry {
+  permissions: string[];
+  expiresAt: number;
+}
+
+const CACHE_TTL_MS = 60_000; // 60 seconds
+
 @Injectable()
 export class PermissionsGuard implements CanActivate {
+  private cache = new Map<string, CacheEntry>();
+
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
@@ -16,6 +25,7 @@ export class PermissionsGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
+    // No permissions required → allow
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
     }
@@ -32,17 +42,38 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const effectivePermissions = await this.getEffectivePermissions(user.id);
+    // tenantId comes from the JWT (set by JwtStrategy)
+    const tenantId: string | undefined = user.tenantId;
+    if (!tenantId) {
+      return false;
+    }
+
+    const effectivePermissions = await this.getEffectivePermissions(
+      user.id,
+      tenantId,
+    );
 
     return requiredPermissions.every((perm) =>
       effectivePermissions.includes(perm),
     );
   }
 
-  private async getEffectivePermissions(userId: string): Promise<string[]> {
-    // Get all permissions from all assigned roles
+  private async getEffectivePermissions(
+    userId: string,
+    tenantId: string,
+  ): Promise<string[]> {
+    const cacheKey = `${userId}:${tenantId}`;
+    const now = Date.now();
+
+    // Check cache
+    const cached = this.cache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return cached.permissions;
+    }
+
+    // Get all permissions from assigned roles (scoped to tenant)
     const roleAssignments = await this.prisma.userRoleAssignment.findMany({
-      where: { userId },
+      where: { userId, tenantId },
       include: {
         role: {
           include: {
@@ -56,30 +87,44 @@ export class PermissionsGuard implements CanActivate {
       },
     });
 
-    const rolePermissionKeys = new Set<string>();
+    const permissionKeys = new Set<string>();
     for (const assignment of roleAssignments) {
       for (const rp of assignment.role.permissions) {
-        rolePermissionKeys.add(rp.permission.key);
+        permissionKeys.add(rp.permission.key);
       }
     }
 
-    // Get individual grants/revokes
+    // Get individual grants/revokes (scoped to tenant)
     const individualGrants = await this.prisma.userPermissionGrant.findMany({
-      where: { userId },
-      include: {
-        permission: true,
-      },
+      where: { userId, tenantId },
+      include: { permission: true },
     });
 
-    // Apply individual grants (add or remove)
     for (const grant of individualGrants) {
       if (grant.granted) {
-        rolePermissionKeys.add(grant.permission.key);
+        permissionKeys.add(grant.permission.key);
       } else {
-        rolePermissionKeys.delete(grant.permission.key);
+        permissionKeys.delete(grant.permission.key);
       }
     }
 
-    return Array.from(rolePermissionKeys);
+    const permissions = Array.from(permissionKeys);
+
+    // Store in cache
+    this.cache.set(cacheKey, {
+      permissions,
+      expiresAt: now + CACHE_TTL_MS,
+    });
+
+    // Evict expired entries periodically (every 100 writes)
+    if (this.cache.size > 100) {
+      for (const [key, entry] of this.cache) {
+        if (entry.expiresAt <= now) {
+          this.cache.delete(key);
+        }
+      }
+    }
+
+    return permissions;
   }
 }
